@@ -5,7 +5,7 @@ import dropdown_icon from '../Components/Assets/down.png'
 // Fix the path to Item.jsx based on your project structure
 import { Item } from '../Components/item/Item.jsx'
 // Add placeholder image import
-import placeholder from '../Components/Assets/placeholder.png' // Adjust path as needed
+//import placeholder from '../Components/Assets/placeholder.png' 
 
 export const ShopCategory = (props) => {
     const context = useContext(ShopContext)
@@ -35,7 +35,7 @@ export const ShopCategory = (props) => {
                                 key={i}
                                 id={item.id}
                                 name={item.name}
-                                image={placeholder} // Now using the imported placeholder
+                                image={item.image} // Now using the imported placeholder
                                 new_price={item.new_price}
                                 old_price={item.old_price}
                             />
