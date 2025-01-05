@@ -16,18 +16,18 @@ export const Product = () => {
       const foundProduct = all_product.find(
         (e) => e.id === parseInt(productId, 10) // Use parseInt for clarity
       );
-      setProduct(foundProduct); // Ensure state remains consistent
+      setProduct(foundProduct || null); // Ensure state remains consistent
     }
   }, [all_product, productId]);
 
   if (!product) {
-    return <div>Product not found or loading...</div>; // Handle null state gracefully
+    return <div>Product not found or loading... Check product ID</div>; // Handle null state gracefully
   }
 
   return (
     <div>
       <Breadcrumb product={product} />
-      <ProductDisplay product={product} />
+      <ProductDisplay products={product} />
     </div>
   );
 };
