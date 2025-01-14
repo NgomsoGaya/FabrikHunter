@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
-import { initializeDigitalData } from "./digitalDataInitializer";
-import { useDigitalDataUpdater } from "./useDigitalDataUpdater";
+import { initializeDigitalData } from "./dataLayer/digitalDataInitializer.js";
+import { useDigitalDataUpdater } from "./dataLayer/useDigitalDataUpdater.js";
 import Navbar from './Components/Navbar/Navbar';
 import { Shop } from './Pages/Shop';
 import { Product } from './Pages/Product';
