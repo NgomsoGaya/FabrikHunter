@@ -1,6 +1,19 @@
 export const updateProductView = (product) => {
-    if (!product || !product.id || !product.name) {
-      console.error("Invalid product data:", product);
+    // Add detailed logging to see what's being received
+   // console.log("Received product data:", product);
+  
+    if (!product) {
+      //console.error("Product is undefined or null");
+      return;
+    }
+  
+    if (!product.id) {
+      //console.error("Missing product ID");
+      return;
+    }
+  
+    if (!product.name) {
+      //console.error("Missing product name");
       return;
     }
   
@@ -19,4 +32,3 @@ export const updateProductView = (product) => {
   
     console.log("DigitalData updated for product view:", window.digitalData.product);
   };
-  
