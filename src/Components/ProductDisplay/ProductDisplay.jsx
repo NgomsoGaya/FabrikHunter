@@ -1,4 +1,5 @@
 import React from 'react'
+import { updateProductView } from '../../dataLayer/updateProductView.js'
 import './ProductDisplay.css'
 import star_icon from '../Assets/star.png'
 import star_dull_icon from '../Assets/star-dull.png'
@@ -12,6 +13,8 @@ export const ProductDisplay = ( {products} ) => {
 
   // If we have a product, destructure the needed properties
   const { image, name, old_price, new_price} = products;
+
+  updateProductView()
 
   return (
     <div className='productdisplay'>

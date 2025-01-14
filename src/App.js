@@ -1,4 +1,7 @@
 import './App.css';
+import React from 'react';
+import { initializeDigitalData } from "./digitalDataInitializer";
+import { useDigitalDataUpdater } from "./useDigitalDataUpdater";
 import Navbar from './Components/Navbar/Navbar';
 import { Shop } from './Pages/Shop';
 import { Product } from './Pages/Product';
@@ -13,6 +16,14 @@ import kids_banner from './Components/Assets/kidsbanner.jpg'
 
 
 function App() {
+   // Initialize digitalData once on app load.
+   React.useEffect(() => {
+    initializeDigitalData();
+  }, []);
+
+  // Update digitalData on route changes.
+  useDigitalDataUpdater();
+
   return (
     <div>
       <BrowserRouter>

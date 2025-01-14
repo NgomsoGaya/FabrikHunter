@@ -21,85 +21,50 @@
 
 <!-- datalayer below -->
 <script>
- window.digitalData = {
-  "page": {
-    "pageInfo": {
-      "breadcrumbs": "eco-store:us:en:home",
-      "pageShortName": "eco-store:home",
-      "pageName": "content:eco-store:us:en:home",
-      "destinationURL": window.location.href,
-      "isIframe": false,
-      "contentIframe": false,
-      "hierarchie1": "eco-store:us:en:home",
-      "title": document.title,
-      "internalPageName": "home",
-      "pageID": "eco-store:content:home",
-      "tagging": "",
-      "server": window.location.hostname,
-      "urlShortcut": "",
-      "referringURL": document.referrer,
-      "sysEnv": navigator.userAgent
-    },
-    "category": {
-      "type": "eco-friendly:clothing",
-      "version": "1.0"
-    },
-    "attributes": {
-      "ecoTag": true
-    },
-    "components": []
-  },
-  "product": [
-    {
-      "productInfo": {
-        "productId": "12345",
-        "productName": "Eco-Friendly T-shirt",
-        "category": "Eco-Friendly Apparel",
-        "price": 29.99,
-        "brand": "EcoBrand",
-        "quantity": 1,
-        "sku": "ECO12345",
-        "ecoTag": true
+  window.digitalData = {
+    page: {
+      pageInfo: {
+        pageName: "default",
+        destinationURL: window.location.href,
+        referringURL: document.referrer,
+        sysEnv: navigator.userAgent,
+        internalPageName: "default",
+        pageID: "default",
+        title: "Default Title",
       },
-      "metrics": {
-        "ecoScore": 85,
-        "waterSaved": 30,
-        "carbonOffset": 12.5
-      }
-    }
-  ],
-  "cart": {
-    "productsInCart": 1,
-    "cartValue": 29.99,
-    "cartItems": [
+      category: {
+        type: "default-category",
+        version: "1.0",
+      },
+      attributes: {},
+      components: [],
+    },
+    product: [],
+    cart: {
+      productsInCart: 0,
+      cartValue: 0,
+      cartItems: [],
+    },
+    user: [
       {
-        "productId": "12345",
-        "productName": "Eco-Friendly T-shirt",
-        "price": 29.99,
-        "quantity": 1
-      }
-    ]
-  },
-  "user": [
-    {
-      "profile": [
-        {
-          "profileInfo": {
-            "userId": "guest",
-            "userType": "anonymous"
+        profile: [
+          {
+            profileInfo: {
+              userId: "guest",
+              userType: "anonymous",
+            },
+            attributes: {
+              loggedIn: false,
+            },
           },
-          "attributes": {
-            "loggedIn": false,
-            "ecoConscious": false
-          }
-        }
-      ]
-    }
-  ],
-  "pageInstanceID": "eco-store:publish:content:home",
-  "language": "en"
-};
+        ],
+      },
+    ],
+    pageInstanceID: "default-instance",
+    language: "en",
+  };
 </script>
+
 
 <script src="https://assets.adobedtm.com/43e08a8c9425/3f649a539553/launch-3e8c266d5631-development.min.js" async></script>
     <!--
