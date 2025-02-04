@@ -1,6 +1,4 @@
 export const updateProductView = (product) => {
-    // Add detailed logging to see what's being received
-   // console.log("Received product data:", product);
   
     if (!product) {
       //console.error("Product is undefined or null");

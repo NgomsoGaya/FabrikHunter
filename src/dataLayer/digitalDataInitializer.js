@@ -1,47 +1,44 @@
 export const initializeDigitalData = () => {
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          pageName: "default",
-          destinationURL: window.location.href,
-          referringURL: document.referrer,
-          sysEnv: navigator.userAgent,
-          internalPageName: "default",
-          pageID: "default",
-          title: "Default Title",
-        },
-        category: {
-          type: "default-category",
-          version: "1.0",
-        },
-        attributes: {},
-        components: [],
+  window.digitalData = {
+    page: {
+      pageInfo: {
+        pageName: "",
+        pageType: "",
+        siteSection: ""
       },
-      product: [],
-      cart: {
-        productsInCart: 0,
-        cartValue: 0,
-        cartItems: [],
+      category: {
+        primaryCategory: "",
+        subCategory: "",
+      }
+    },
+    user: {
+      profile: {
+        profileInfo: {
+          profileID: "",
+          userType: ""
+        }
+      }
+    },
+    style: {
+      styleInfo: {
+        styleID: "",
+        category: "",
+        name: "",
+        price: ""
       },
-      user: [
-        {
-          profile: [
-            {
-              profileInfo: {
-                userId: "guest",
-                userType: "anonymous",
-              },
-              attributes: {
-                loggedIn: false,
-              },
-            },
-          ],
-        },
-      ],
-      pageInstanceID: "default-instance",
-      language: "en",
-    };
-  
-    console.log("DigitalData initialized:", window.digitalData);
-  };
-  
+      styleInteraction: {
+        type: "",
+        timestamp: "",
+        durationInSeconds: ""
+      }
+    },
+    subscription: {
+      subscriptionInfo: {
+        type: "",
+        price: "",
+        frequency: ""
+      }
+    },
+  }
+  console.log("DigitalData initialized:", window.digitalData);
+};
