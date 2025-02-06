@@ -1,7 +1,7 @@
 import products from '../Components/Assets/all_products.js';
 
 // Fetch product data from your product database/array
-export default fetchProductData = (productId) => {
+export const fetchProductData = (productId) => {
   const product = products.find((item) => item.id === parseInt(productId));
   if (!product) {
     console.error(`Product with ID ${productId} not found.`);

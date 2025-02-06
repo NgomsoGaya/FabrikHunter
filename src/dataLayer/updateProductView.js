@@ -1,4 +1,4 @@
-import { fetchProductData } from "./fetchProductData.js";
+import fetchProductData from "./fetchProductData";
 
 export const updateProductView = (productId) => {
   const product = fetchProductData(productId);
