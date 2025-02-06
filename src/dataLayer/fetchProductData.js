@@ -1,7 +1,7 @@
 import products from '../Components/Assets/all_products.js';
 
-const fetchProductData = (productId) => {
-  // Convert productId to a number (if necessary) because route params are strings
+// Fetch product data from your product database/array
+export const fetchProductData = (productId) => {
   const product = products.find((item) => item.id === parseInt(productId));
   if (!product) {
     console.error(`Product with ID ${productId} not found.`);
@@ -15,5 +15,3 @@ const fetchProductData = (productId) => {
     image: product.image,
   };
 };
-
-export default fetchProductData

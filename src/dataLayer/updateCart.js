@@ -1,20 +1,28 @@
-export const updateCart = (cart) => {
-    if (!cart || !Array.isArray(cart.items)) {
-      console.error("Invalid cart data:", cart);
-      return;
-    }
-  
-    window.digitalData.cart = {
-      productsInCart: cart.items.length,
-      cartValue: cart.items.reduce((total, item) => total + item.price * item.quantity, 0),
-      cartItems: cart.items.map((item) => ({
-        productID: item.id,
-        productName: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-    };
-  
-    console.log("DigitalData updated for cart:", window.digitalData.cart);
+export const updateCart = (cartItems) => {
+  if (!Array.isArray(cartItems)) {
+    console.error("Invalid cart items");
+    return;
+  }
+
+  // Fetch full product data for each cart item
+  const populatedCartItems = cartItems.map(item => {
+    const product = fetchProductData(item.id);
+    return product ? {
+      ...item,
+      price: product.price,
+      name: product.name
+    } : null;
+  }).filter(item => item !== null);
+
+  const cartValue = populatedCartItems.reduce((total, item) => 
+    total + (item.price * item.quantity), 0
+  );
+
+  window.digitalData.ecommerce.cart = {
+    productsAdded: populatedCartItems.map(item => item.id),
+    cartValue
   };
-  
+
+  console.log("DigitalData updated for cart:", window.digitalData.ecommerce.cart);
+  return populatedCartItems; // Return populated cart items for component use
+};

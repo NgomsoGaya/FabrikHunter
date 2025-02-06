@@ -1,35 +1,34 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 
 export const useDigitalDataUpdater = () => {
   const location = useLocation();
+  const { productId } = useParams();
 
   useEffect(() => {
     const updateDigitalData = () => {
       const path = location.pathname;
-      const pageName = path.replace(/\//g, ":").substring(1) || "home";
+      const pageName = path.replace(/\//g, ':').substring(1) || 'home';
 
-      window.digitalData.page.pageInfo = {
-        pageName: `eco-store:${pageName}`,
-        destinationURL: window.location.href,
-        referringURL: document.referrer,
-        sysEnv: navigator.userAgent,
-        internalPageName: pageName,
-        pageID: `eco-store:${pageName}`,
-        title: document.title,
-      };
-
-      if (location.pathname.includes("mens")) {
-        window.digitalData.page.category = { categoryName: "men" };
-      } else if (location.pathname.includes("womens")) {
-        window.digitalData.page.category = { categoryName: "women" };
-      } else if (location.pathname.includes("kids")) {
-        window.digitalData.page.category = { categoryName: "kids" };
+      // Update page name
+      window.digitalData.page.name = `eco-store:${pageName}`;
+      
+      // Update category based on URL
+      let category = '';
+      if (path.includes('mens')) category = 'men';
+      else if (path.includes('womens')) category = 'women';
+      else if (path.includes('kids')) category = 'kids';
+      
+      if (category) {
+        updateCategoryView(category);
       }
 
-      console.log("DigitalData updated for page:", window.digitalData.page.pageInfo);
+      // If we're on a product page, update product view
+      if (productId) {
+        updateProductView(productId);
+      }
     };
 
     updateDigitalData();
-  }, [location]);
+  }, [location, productId]);
 };

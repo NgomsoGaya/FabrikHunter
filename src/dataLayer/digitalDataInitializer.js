@@ -1,44 +1,39 @@
 export const initializeDigitalData = () => {
   window.digitalData = {
+    event: "pageView",
     page: {
-      pageInfo: {
-        pageName: "",
-        pageType: "",
-        siteSection: ""
-      },
-      category: {
-        primaryCategory: "",
-        subCategory: "",
-      }
+      name: "",
+      category: "",
+      type: "category"
     },
     user: {
-      profile: {
-        profileInfo: {
-          profileID: "",
-          userType: ""
-        }
-      }
-    },
-    style: {
-      styleInfo: {
-        styleID: "",
-        category: "",
-        name: "",
-        price: ""
+      UserID: "",
+      status: "",
+      email: "",
+      behavior: {
+        viewedCategories: [],
+        viewedProducts: [],
+        interactedWith: []
       },
-      styleInteraction: {
-        type: "",
-        timestamp: "",
-        durationInSeconds: ""
+      mostViewed: {
+        category: "",
+        product: ""
       }
     },
-    subscription: {
-      subscriptionInfo: {
-        type: "",
-        price: "",
-        frequency: ""
+    ecommerce: {
+      cart: {
+        productsAdded: [],
+        cartValue: 0
       }
     },
-  }
+    subscriptionBanner: {
+      variant: "",
+      clicked: false
+    },
+    personalization: {
+      homepageBanner: "",
+      emailRecommendation: ""
+    }
+  };
   console.log("DigitalData initialized:", window.digitalData);
 };
