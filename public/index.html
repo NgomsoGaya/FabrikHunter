@@ -24,46 +24,40 @@
 <!-- datalayer below -->
 <script>
   window.digitalData = {
+    event: "pageView",
     page: {
-      pageInfo: {
-        pageName: "default",
-        destinationURL: window.location.href,
-        referringURL: document.referrer,
-        sysEnv: navigator.userAgent,
-        internalPageName: "default",
-        pageID: "default",
-        title: "Default Title",
-      },
-      category: {
-        type: "default-category",
-        version: "1.0",
-      },
-      attributes: {},
-      components: [],
+      name: "",
+      category: "",
+      type: "category"
     },
-    product: [],
-    cart: {
-      productsInCart: 0,
-      cartValue: 0,
-      cartItems: [],
-    },
-    user: [
-      {
-        profile: [
-          {
-            profileInfo: {
-              userId: "guest",
-              userType: "anonymous",
-            },
-            attributes: {
-              loggedIn: false,
-            },
-          },
-        ],
+    user: {
+      UserID: "",
+      status: "",
+      email: "",
+      behavior: {
+        viewedCategories: [],
+        viewedProducts: [],
+        interactedWith: []
       },
-    ],
-    pageInstanceID: "default-instance",
-    language: "en",
+      mostViewed: {
+        category: "",
+        product: ""
+      }
+    },
+    ecommerce: {
+      cart: {
+        productsAdded: [],
+        cartValue: 0
+      }
+    },
+    subscriptionBanner: {
+      variant: "",
+      clicked: false
+    },
+    personalization: {
+      homepageBanner: "",
+      emailRecommendation: ""
+    }
   };
 </script>
 

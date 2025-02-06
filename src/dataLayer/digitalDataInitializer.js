@@ -1,5 +1,6 @@
 export const initializeDigitalData = () => {
-  window.digitalData = {
+ if(!window.digitalData){
+   window.digitalData = {
     event: "pageView",
     page: {
       name: "",
@@ -35,5 +36,6 @@ export const initializeDigitalData = () => {
       emailRecommendation: ""
     }
   };
+ }
   console.log("DigitalData initialized:", window.digitalData);
 };
