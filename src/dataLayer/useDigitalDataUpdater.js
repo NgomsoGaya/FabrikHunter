@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import updateCategoryView from './updateCategoryView';
-import updateProductView from './updateProductView';
+import {updateCategoryView} from './updateCategoryView';
+import {updateProductView} from './updateProductView';
 
 export const useDigitalDataUpdater = () => {
   const location = useLocation();

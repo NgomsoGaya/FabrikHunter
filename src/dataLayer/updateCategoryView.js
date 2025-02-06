@@ -1,4 +1,4 @@
-export default updateCategoryView = (category) => {
+export const updateCategoryView = (category) => {
     if (!category) return;
   
     // Get all products in this category

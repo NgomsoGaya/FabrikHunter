@@ -1,6 +1,6 @@
 import fetchProductData from "./fetchProductData";
 
-export default updateProductView = (productId) => {
+export const updateProductView = (productId) => {
   const product = fetchProductData(productId);
   
   if (!product) {
