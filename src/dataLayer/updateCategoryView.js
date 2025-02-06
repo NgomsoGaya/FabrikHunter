@@ -1,3 +1,5 @@
+import products from '../Components/Assets/all_products.js'
+
 export const updateCategoryView = (category) => {
     if (!category) return;
   
