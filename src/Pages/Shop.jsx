@@ -7,7 +7,7 @@ import { NewsLetter } from '../Components/NewsLetter/NewsLetter.jsx';
 
 export const Shop = () => {
   return (
-    <div>
+    <div >
       <Hero />
       <Popular />
       <Offers />
