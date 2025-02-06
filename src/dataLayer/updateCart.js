@@ -1,3 +1,5 @@
+import { fetchProductData } from "./fetchProductData.js";
+
 export const updateCart = (cartItems) => {
   if (!Array.isArray(cartItems)) {
     console.error("Invalid cart items");
