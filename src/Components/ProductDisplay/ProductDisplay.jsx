@@ -1,26 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { updateProductView } from '../../dataLayer/updateProductView.js';
-import './ProductDisplay.css';
-import star_icon from '../Assets/star.png';
-import star_dull_icon from '../Assets/star-dull.png';
-import fetchProductData  from '../../dataLayer/fetchProductData.js';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { updateProductView } from "../../dataLayer/updateProductView.js";
+import fetchProductData from "../../dataLayer/fetchProductData.js";
+import "./ProductDisplay.css";
+import star_icon from "../Assets/star.png";
+import star_dull_icon from "../Assets/star-dull.png";
 
 export const ProductDisplay = () => {
   const [product, setProduct] = useState(null); // State to store the current product
   const [isLoading, setIsLoading] = useState(true); // State for loading state
-  const { productId } = useParams();
+  const { productId } = useParams(); // Get product ID from URL
 
   useEffect(() => {
     const getProductData = async () => {
       try {
         setIsLoading(true);
-        const productData = fetchProductData(productId);
-        setProduct(productData);
+        const numericProductId = Number(productId); // Ensure productId is a number
 
-        updateProductView(productData);
-      } catch {
-        console.error("Product not found");
+        if (!isNaN(numericProductId)) {
+          const productData = await fetchProductData(numericProductId); // Await fetch
+          if (productData) {
+            setProduct(productData);
+            updateProductView(numericProductId); // Update view count
+          } else {
+            console.error("Product not found in database");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
       } finally {
         setIsLoading(false);
       }
@@ -31,21 +38,18 @@ export const ProductDisplay = () => {
     }
   }, [productId]);
 
-  // Display a loading spinner while the product data is being fetched
+  // Display a loading state while fetching data
   if (isLoading) {
     return <div className="productdisplay">Loading...</div>;
   }
 
-  // Handle the case where the product is not found
+  // Handle case where product does not exist
   if (!product) {
     return <div className="productdisplay">Product not found!</div>;
   }
 
   // Destructure product data for display
   const { image, name, old_price, new_price, category } = product;
-
-  // Call the data layer update function
-  updateProductView();
 
   return (
     <div className="productdisplay">
