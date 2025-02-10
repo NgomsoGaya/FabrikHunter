@@ -57,3 +57,8 @@
     align-items: center;
     justify-content: center;
 }
+
+.hero-img {
+
+    min-width: 100%;
+}
