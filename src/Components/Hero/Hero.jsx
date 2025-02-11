@@ -10,7 +10,7 @@ export const Hero = () => {
     const img = document.querySelector('.hero-img');
     if (img) {
       img.onload = () => {
-        console.log('Hero image loaded:', img.src);
+        console.log('Hero image loaded: good!');
       };
     }
   }, []);
