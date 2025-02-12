@@ -2,6 +2,7 @@ import './App.css';
 import React from 'react';
 import { initializeDigitalData } from "./dataLayer/digitalDataInitializer.js";
 import { useDigitalDataUpdater } from "./dataLayer/useDigitalDataUpdater.js";
+import { initializeSalesforceInteractions } from './utils/salesforceInteractions';
 import Navbar from './Components/Navbar/Navbar';
 import { Shop } from './Pages/Shop';
 import { Product } from './Pages/Product';
@@ -37,6 +38,7 @@ const AppContent = () => {
 function App() {
   React.useEffect(() => {
     initializeDigitalData();
+    initializeSalesforceInteractions();
   }, []);
 
   return (
