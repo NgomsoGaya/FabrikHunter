@@ -32,7 +32,7 @@ export const Hero = () => {
           <img src={arrow_icon} alt="" />
         </div>
       </div>
-      <div className="hero-right">
+      <div className="hero-right" id='hero-persona'>
         <img className='hero-img' src={hero_image} alt="Hero Banner" />
       </div>
     </div>
