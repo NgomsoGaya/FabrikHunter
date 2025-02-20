@@ -55,15 +55,22 @@
 </script>
 
 <script type="text/javascript" src="//cdn.evgnet.com/beacon/partneracceleration/fabrikhunter/scripts/evergage.min.js"></script>
-<script src="https://assets.adobedtm.com/43e08a8c9425/3f649a539553/launch-3e8c266d5631-development.min.js" async></script>
-
+<script src="https://assets.adobedtm.com/43e08a8c9425/3f649a539553/launch-61ac6adcbbc5.min.js" async></script>
     <title>FabrikHunter</title>
   </head>
 
   <body>
-
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <script>
+      function getRandomTime(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
     
+      setTimeout(function() {
+        let popup = window.open('https://mc953zsyjzkqnx9q59-z6dk4tfn4.pub.sfmc-content.com/yk305t4m1zq', '_blank', 'width=500,height=600');
+      }, getRandomTime(5000, 15000)); // Random time between 5s and 15s
+    </script>
+
+    <div id="root"></div>
+
   </body>
 </html>
