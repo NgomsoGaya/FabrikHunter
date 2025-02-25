@@ -9,7 +9,7 @@ export default function Navbar() {
     const [menu, setMenu] = useState("shop");
     
   return (
-    <div className='navbar'>
+    <div className='navbar' id='navbar-zone'>
         <div className="nav-logo">
             <img src={logo} alt="" />
             <p>FabrikHunter</p>
