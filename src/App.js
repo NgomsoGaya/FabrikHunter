@@ -14,7 +14,6 @@ import men_banner from './Components/Assets/menbanner.jpg'
 import women_banner from './Components/Assets/womenbanner.jpg'
 import kids_banner from './Components/Assets/kidsbanner.jpg'
 
-// New component for tracking virtual pageviews
 const PageViewTracker = () => {
   const location = useLocation();
   
@@ -23,19 +22,47 @@ const PageViewTracker = () => {
     if (window._satellite && window.digitalData) {
       // Get the current page name based on the path
       let pageName = "home";
+      
+      if (location.pathname.includes('/product/')) {
+        const productId = location.pathname.split('/').pop();
+        
+        // Find the product name from the all_product data that's likely used in your Product component
+        import('../src/Components/Assets/all_products.js').then(({ all_product }) => {
+          const product = all_product.find(p => p.id.toString() === productId);
+          const productName = product ? product.name.replace(/\s+/g, '_').toLowerCase() : `unknown_${productId}`;
+          
+          window.digitalData.page = {
+            ...window.digitalData.page,
+            name: `product_${productName}`,
+            category: 'product',
+            productId: productId
+          };
+          
+          // Trigger tracking with product name
+          console.log(`Tracking product page view: ${productName}`);
+          window._satellite.track("virtualPageView");
+        }).catch(err => {
+          // Fallback if we can't import the product data
+          window.digitalData.page = {
+            ...window.digitalData.page,
+            name: `product_${productId}`,
+            category: 'product'
+          };
+          console.log(`Tracking virtual pageview: product_${productId}`);
+          window._satellite.track("virtualPageView");
+        });
+        
+        // Return early since we're handling the tracking in the promise
+        return;
+      }
+      
+      // Handle other pages as before
       if (location.pathname.includes('/mens')) pageName = "mens";
       else if (location.pathname.includes('/womens')) pageName = "womens";
       else if (location.pathname.includes('/kids')) pageName = "kids";
       else if (location.pathname.includes('/cart')) pageName = "cart";
       else if (location.pathname.includes('/login')) pageName = "login";
-      else if (location.pathname.includes('/product/')) {
-        // For product pages, you might want to include the product ID
-        const productId = location.pathname.split('/').pop();
-        pageName = `product_${productId}`;
-      }
       
-      // Update the digitalData object with page info if needed
-      // (This may be redundant if useDigitalDataUpdater already does this)
       window.digitalData.page = {
         ...window.digitalData.page,
         name: pageName,
