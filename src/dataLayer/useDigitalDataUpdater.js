@@ -17,8 +17,8 @@ export const useDigitalDataUpdater = () => {
       
       // Update category based on URL
       let category = '';
-      if (path.includes('mens')) category = 'men';
-      else if (path.includes('womens')) category = 'women';
+      if (path.includes('womens')) category = 'women';
+      else if (path.includes('mens')) category = 'men';
       else if (path.includes('kids')) category = 'kids';
       
       if (category) {
