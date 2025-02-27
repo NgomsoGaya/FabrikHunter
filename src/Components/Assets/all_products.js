@@ -123,4 +123,5 @@ const products = [
     },
 ];
 
+export const all_product = products; 
 export default products;

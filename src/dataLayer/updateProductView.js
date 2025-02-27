@@ -14,7 +14,7 @@ export const updateProductView = (productId) => {
       productID: product.id,
       productName: product.name,
       category: product.category,
-      price: product.price,
+      new_price: product.price,
       currency: "USD", // Default currency
       availability: "in stock" // Default availability
     }

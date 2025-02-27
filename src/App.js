@@ -30,6 +30,7 @@ const PageViewTracker = () => {
         import('../src/Components/Assets/all_products.js').then(({ all_product }) => {
           const product = all_product.find(p => p.id.toString() === productId);
           const productName = product ? product.name.replace(/\s+/g, '_').toLowerCase() : `unknown_${productId}`;
+          console.log(productName)
           
           window.digitalData.page = {
             ...window.digitalData.page,
