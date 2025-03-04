@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CSS/LoginSignup.css';
 
 export const LoginSignup = () => {
@@ -10,7 +10,40 @@ export const LoginSignup = () => {
     agreeToTerms: false
   });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+
+  // Initialize digitalData on component mount
+  useEffect(() => {
+    initializeDigitalData();
+  }, []);
+
+  // Track form start when an input field is focused
+  const handleFormStart = () => {
+    if (!window.digitalData) {
+      console.error("digitalData is not initialized.");
+      return;
+    }
+
+    if (!window.digitalData.form) {
+      window.digitalData.form = {}; // Initialize form object if it doesn't exist
+    }
+
+    if (!Array.isArray(window.digitalData.event)) {
+      window.digitalData.event = []; // Ensure event is an array
+    }
+
+    if (!window.digitalData.form.formStart) {
+      window.digitalData.form.formStart = true;
+      window.digitalData.event.push({
+        event: "formStart",
+        form: {
+          formId: window.digitalData.form.formId || "loginSignupForm",
+          formName: window.digitalData.form.formName || "Login/Signup Form"
+        }
+      });
+      console.log("Form start tracked:", window.digitalData);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,12 +62,8 @@ export const LoginSignup = () => {
       setError('Email is required');
       return false;
     }
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (!formData.password.trim()) {
+      setError('Password must not be empty');
       return false;
     }
     if (!isLogin && !formData.agreeToTerms) {
@@ -44,44 +73,48 @@ export const LoginSignup = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:5000/api/auth/${isLogin ? 'login' : 'signup'}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        })
-      });
+    // Track form submit
+    if (!window.digitalData) {
+      console.error("digitalData is not initialized.");
+      return;
+    }
 
-      const data = await response.json();
+    if (!window.digitalData.form) {
+      window.digitalData.form = {}; // Initialize form object if it doesn't exist
+    }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+    if (!Array.isArray(window.digitalData.event)) {
+      window.digitalData.event = []; // Ensure event is an array
+    }
+
+    window.digitalData.form.formSubmit = true;
+    window.digitalData.event.push({
+      event: "formSubmit",
+      form: {
+        formId: window.digitalData.form.formId || "loginSignupForm",
+        formName: window.digitalData.form.formName || "Login/Signup Form"
       }
+    });
+    console.log("Form submit tracked:", window.digitalData);
 
-      // Store the token
-      localStorage.setItem('token', data.token);
-      
-      // Here you would typically:
-      // 1. Update global auth state (using Context or Redux)
-      // 2. Redirect to dashboard or home page
-      console.log('Success:', data);
-      
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    // Simple success message instead of API call
+    setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
+
+    // Reset form after successful submission
+    if (!isLogin) {
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        agreeToTerms: false
+      });
     }
   };
 
@@ -98,6 +131,7 @@ export const LoginSignup = () => {
                 placeholder='Your Name'
                 value={formData.name}
                 onChange={handleChange}
+                onFocus={handleFormStart} // Track form start on focus
               />
             )}
             <input
@@ -106,6 +140,7 @@ export const LoginSignup = () => {
               placeholder='Email Address'
               value={formData.email}
               onChange={handleChange}
+              onFocus={handleFormStart} // Track form start on focus
             />
             <input
               type="password"
@@ -113,13 +148,15 @@ export const LoginSignup = () => {
               placeholder='Password'
               value={formData.password}
               onChange={handleChange}
+              onFocus={handleFormStart} // Track form start on focus
             />
           </div>
-          
-          {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Please wait...' : 'Continue'}
+          {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
+          {success && <p className="success-message" style={{ color: 'green' }}>{success}</p>}
+
+          <button type="submit" className='submit'>
+            Continue
           </button>
 
           <p className="loginsignup-login">
@@ -127,6 +164,7 @@ export const LoginSignup = () => {
             <span onClick={() => {
               setIsLogin(!isLogin);
               setError('');
+              setSuccess('');
               setFormData({
                 name: '',
                 email: '',
@@ -153,4 +191,55 @@ export const LoginSignup = () => {
       </div>
     </div>
   );
+};
+
+export const initializeDigitalData = () => {
+  if (!window.digitalData) {
+    window.digitalData = {
+      event: [], // Ensure event is initialized as an array
+      page: {
+        name: "",
+        category: "",
+        type: "category"
+      },
+      user: {
+        UserID: "",
+        status: "",
+        email: "",
+        behavior: {
+          viewedCategories: [],
+          viewedProducts: [],
+          interactedWith: []
+        },
+        mostViewed: {
+          category: "",
+          product: ""
+        }
+      },
+      ecommerce: {
+        cart: {
+          productsAdded: [],
+          cartValue: 0
+        }
+      },
+      subscriptionBanner: {
+        variant: "",
+        clicked: false
+      },
+      personalization: {
+        homepageBanner: "",
+        emailRecommendation: ""
+      },
+      form: {
+        formId: "loginSignupForm",
+        formName: "Login/Signup Form",
+        formStart: false,
+        formSubmit: false
+      }
+    };
+  } else if (!Array.isArray(window.digitalData.event)) {
+    // If event exists but is not an array, reset it to an array
+    window.digitalData.event = [];
+  }
+  console.log("DigitalData initialized:", window.digitalData);
 };
