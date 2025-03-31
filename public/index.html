@@ -71,7 +71,7 @@
 
 function createModal() {
   // Create modal container
-  const modal = document.createElement('div');
+  const modal = document.createElement('form-modal');
   modal.style.cssText = `
     position: fixed;
     top: 0;
@@ -99,7 +99,7 @@ function createModal() {
   `;
 
   // Create close button
-  const closeButton = document.createElement('button');
+  const closeButton = document.createElement('close-button');
   closeButton.textContent = 'X';
   closeButton.style.cssText = `
     position: absolute;
