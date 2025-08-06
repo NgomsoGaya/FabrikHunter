@@ -1,7 +1,7 @@
 export const initializeDigitalData = () => {
   if (!window.digitalData) {
     window.digitalData = {
-      event: [], // Ensure event is initialized as an array
+      event: [], // Ensure event is initialized as an arra
       page: {
         name: "",
         category: "",
