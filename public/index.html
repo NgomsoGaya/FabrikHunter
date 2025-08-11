@@ -56,10 +56,51 @@ window.eventDataLayer.error = {
 };
 </script>
 
+<!-- datalayer below -->
+<script type="text/javascript">
+  window.digitalData = {
+    event: "pageView",
+    page: {
+      name: "",
+      category: "",
+      type: "category"
+    },
+    user: {
+      UserID: "",
+      status: "",
+      email: "",
+      behavior: {
+        viewedCategories: [],
+        viewedProducts: [],
+        interactedWith: []
+      },
+      mostViewed: {
+        category: "",
+        product: ""
+      }
+    },
+    ecommerce: {
+      cart: {
+        productsAdded: [],
+        cartValue: 0
+      }
+    },
+    subscriptionBanner: {
+      variant: "",
+      clicked: false
+    },
+    personalization: {
+      homepageBanner: "",
+      emailRecommendation: ""
+    }
+  };
+</script>
 
 
 
 <script type="text/javascript" src="//cdn.evgnet.com/beacon/partneracceleration/fabrikhunter/scripts/evergage.min.js"></script>
+
+<!-- <script src="https://assets.adobedtm.com/43e08a8c9425/3f649a539553/launch-61ac6adcbbc5.min.js" async></script> -->
 
 <!--event DataLayer  -->
 <script src="https://assets.adobedtm.com/43e08a8c9425/68544163262c/launch-6c173f8cbb4b-development.min.js" async></script>
