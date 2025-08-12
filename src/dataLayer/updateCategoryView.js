@@ -26,6 +26,6 @@ export const updateCategoryView = (category) => {
   
     window.digitalData.user.mostViewed.category = mostViewedCategory;
   
-    console.log("DigitalData updated for category view:", window.digitalData);
+    // console.log("DigitalData updated for category view:", window.digitalData);
     return categoryProducts; // Return category products for component use
   };

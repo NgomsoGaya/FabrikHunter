@@ -1,13 +1,13 @@
 // Ensure digitalData exists
 window.digitalData = window.digitalData || [];
 
-console.log('Form tracking initialized - waiting for modal interactions');
+// console.log('Form tracking initialized - waiting for modal interactions');
 
 // Function to track modal events
 function trackModalEvents(modal) {
   if (!modal) return;
 
-  console.log('Modal detected in DOM, setting up listeners');
+  // console.log('Modal detected in DOM, setting up listeners');
 
   // Track modal open event
   window.digitalData.push({
@@ -15,7 +15,7 @@ function trackModalEvents(modal) {
     formAction: 'open',
     formName: 'FabrikHunter-SignUp'
   });
-  console.log('digitalData updated: Modal detected as open', window.digitalData);
+  // console.log('digitalData updated: Modal detected as open', window.digitalData);
 
   // Listen for close button clicks
   const closeButton = modal.querySelector('[data-close-button]');
@@ -26,9 +26,9 @@ function trackModalEvents(modal) {
         formAction: 'close_button',
         formName: 'FabrikHunter-SignUp'
       });
-      console.log('digitalData updated: Close button clicked', window.digitalData);
+      // console.log('digitalData updated: Close button clicked', window.digitalData);
     });
-    console.log('Close button listener attached');
+    // console.log('Close button listener attached');
   }
 
   // Listen for outside click (assuming modal has a backdrop)
@@ -39,7 +39,7 @@ function trackModalEvents(modal) {
         formAction: 'close_outside_click',
         formName: 'FabrikHunter-SignUp'
       });
-      console.log('digitalData updated: Modal closed by outside click', window.digitalData);
+      // console.log('digitalData updated: Modal closed by outside click', window.digitalData);
     }
   });
 
@@ -55,7 +55,7 @@ function trackModalEvents(modal) {
           formAction: 'form_loaded',
           formName: 'FabrikHunter-SignUp'
         });
-        console.log('digitalData updated: Form loaded in iframe', window.digitalData);
+        // console.log('digitalData updated: Form loaded in iframe', window.digitalData);
         initialLoadComplete = true;
       } else {
         window.digitalData.push({
@@ -63,10 +63,10 @@ function trackModalEvents(modal) {
           formAction: 'possible_submit',
           formName: 'FabrikHunter-SignUp'
         });
-        console.log('digitalData updated: Possible form submission (iframe reload)', window.digitalData);
+        // console.log('digitalData updated: Possible form submission (iframe reload)', window.digitalData);
       }
     });
-    console.log('Iframe load listener attached');
+    // console.log('Iframe load listener attached');
   }
 }
 
@@ -76,7 +76,7 @@ const observer = new MutationObserver((mutations) => {
     if (mutation.type === 'childList') {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeType === 1 && node.matches('[data-form-modal]')) {
-          console.log('Modal added to DOM via MutationObserver');
+          // console.log('Modal added to DOM via MutationObserver');
           trackModalEvents(node);
         }
       });
@@ -86,4 +86,4 @@ const observer = new MutationObserver((mutations) => {
 
 // Start observing document body for modal creation
 observer.observe(document.body, { childList: true, subtree: true });
-console.log('Mutation observer started to detect modal creation');
+// console.log('Mutation observer started to detect modal creation');

@@ -4,7 +4,7 @@ export const updateProductView = (productId) => {
   const product = fetchProductData(productId);
   
   if (!product) {
-    console.error("Could not fetch product data");
+    // console.error("Could not fetch product data");
     return;
   }
 
@@ -37,6 +37,6 @@ export const updateProductView = (productId) => {
   
   window.digitalData.user.mostViewed.product = mostViewedProductId;
 
-  console.log("DigitalData updated for product view:", window.digitalData);
+  // console.log("DigitalData updated for product view:", window.digitalData);
   return product; // Return product data for component use
 };

@@ -6,5 +6,5 @@ export const updatePersonalization = (data) => {
       emailRecommendation: data.emailRecommendation || ""
     };
   
-    console.log("DigitalData updated for personalization:", window.digitalData.personalization);
+    // console.log("DigitalData updated for personalization:", window.digitalData.personalization);
   };

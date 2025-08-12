@@ -46,5 +46,4 @@ export const initializeDigitalData = () => {
     // If event exists but is not an array, reset it to an array
     window.digitalData.event = [];
   }
-  console.log("DigitalData initialized:", window.digitalData);
 };

@@ -2,7 +2,7 @@ import fetchProductData from "./fetchProductData";
 
 export const updateCart = (cartItems) => {
   if (!Array.isArray(cartItems)) {
-    console.error("Invalid cart items");
+    // console.error("Invalid cart items");
     return;
   }
 
@@ -25,6 +25,6 @@ export const updateCart = (cartItems) => {
     cartValue
   };
 
-  console.log("DigitalData updated for cart:", window.digitalData.ecommerce.cart);
+  // console.log("DigitalData updated for cart:", window.digitalData.ecommerce.cart);
   return populatedCartItems; // Return populated cart items for component use
 };

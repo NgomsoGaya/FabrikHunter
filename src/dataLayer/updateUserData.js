@@ -8,5 +8,5 @@ export const updateUserData = (userData) => {
     email: userData.email || "",
   };
 
-  console.log("DigitalData updated for user:", window.digitalData.user);
+  // console.log("DigitalData updated for user:", window.digitalData.user);
 };

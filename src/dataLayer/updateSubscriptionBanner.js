@@ -8,5 +8,5 @@ export const updateBannerInteraction = (variant, clicked = false) => {
       window.digitalData.user.behavior.interactedWith.push('subscriptionBanner');
     }
   
-    console.log("DigitalData updated for banner:", window.digitalData.subscriptionBanner);
+    // console.log("DigitalData updated for banner:", window.digitalData.subscriptionBanner);
   };
