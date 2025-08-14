@@ -195,7 +195,7 @@ setTimeout(createModal, getRandomTime(5000, 15000)); // Random time between 5s a
 
     <div id="root"></div>
 
-
+<!-- THIS IS AN EVENT DATA LAYER PAGE TRACKER -->
 <script>
   class PageDataLayerManager {
     constructor() {
@@ -735,6 +735,161 @@ window.debugPageDataLayer = () => {
     return window.eventDataLayer.page;
 };
 </script>
+
+<!-- THIS IS AN EVENT DATA LAYER FORM TRACKER -->
+<script>
+    // Initialize the global eventDataLayer object if it doesn't exist.
+    // This is the central object where all tracking data will be stored.
+    if (!window.eventDataLayer) {
+        window.eventDataLayer = {
+            event: []
+        };
+    }
+
+    // =======================================================================
+    // Form Data Layer Manager
+    // Manages all form-related events and interactions for the Login/Signup form.
+    // =======================================================================
+    class FormDataLayerManager {
+        constructor() {
+            this.forms = {};
+        }
+
+        // Helper to get a human-readable form name
+        getFormNameById(formId) {
+            const formNames = {
+                'loginSignupForm': 'Login/Signup Form'
+            };
+            return formNames[formId] || formId;
+        }
+
+        // Tracks when a user starts interacting with a form
+        onLoginSignupFormStart(isLogin, fieldName) {
+            const formId = 'loginSignupForm';
+            const formName = this.getFormNameById(formId);
+            const mode = isLogin ? 'login' : 'signup';
+
+            if (!this.forms[formId]) {
+                this.forms[formId] = { started: false, mode: mode, fieldsInteracted: new Set() };
+            }
+
+            if (!this.forms[formId].started) {
+                this.forms[formId].started = true;
+                window.eventDataLayer.event.push({
+                    event: "formStart",
+                    form: {
+                        formId: formId,
+                        formName: formName,
+                        formMode: mode,
+                        firstInteractionField: fieldName
+                    }
+                });
+                console.log("Form start tracked:", window.eventDataLayer.event);
+            }
+        }
+        
+        // Tracks individual field interactions (focus, blur, input, etc.)
+        onFieldInteraction(fieldName, interactionType, isLogin) {
+            const formId = 'loginSignupForm';
+            // Only track if the form has been started
+            if (!this.forms[formId]) return;
+
+            // Prevent duplicate tracking for the same field interaction
+            const interactionKey = `${fieldName}-${interactionType}`;
+            if (!this.forms[formId].fieldsInteracted.has(interactionKey)) {
+                this.forms[formId].fieldsInteracted.add(interactionKey);
+                const mode = isLogin ? 'login' : 'signup';
+                window.eventDataLayer.event.push({
+                    event: "formFieldInteraction",
+                    form: {
+                        formId: formId,
+                        formName: this.getFormNameById(formId),
+                        formMode: mode,
+                        fieldName: fieldName,
+                        interactionType: interactionType
+                    }
+                });
+                console.log(`Field interaction tracked: ${fieldName} (${interactionType})`, window.eventDataLayer.event);
+            }
+        }
+
+        // Tracks form validation errors
+        onValidationError(errorField, isLogin) {
+            const formId = 'loginSignupForm';
+            const mode = isLogin ? 'login' : 'signup';
+            window.eventDataLayer.event.push({
+                event: "formValidationError",
+                form: {
+                    formId: formId,
+                    formName: this.getFormNameById(formId),
+                    formMode: mode,
+                    errorField: errorField
+                }
+            });
+            console.log(`Validation error tracked on field: ${errorField}`, window.eventDataLayer.event);
+        }
+
+        // Tracks successful form submission
+        onFormSubmit(isLogin, success) {
+            const formId = 'loginSignupForm';
+            const formName = this.getFormNameById(formId);
+            const mode = isLogin ? 'login' : 'signup';
+            
+            window.eventDataLayer.event.push({
+                event: "formSubmit",
+                form: {
+                    formId: formId,
+                    formName: formName,
+                    formMode: mode,
+                    status: success ? 'success' : 'failure'
+                }
+            });
+            console.log(`Form submission tracked: ${success ? 'success' : 'failure'}`, window.eventDataLayer.event);
+            
+            // Reset the form state for the next interaction
+            delete this.forms[formId];
+        }
+
+        // Tracks when a user switches between form modes (Login/Signup)
+        onFormModeSwitch(isLogin) {
+            const formId = 'loginSignupForm';
+            const formName = this.getFormNameById(formId);
+            const newMode = isLogin ? 'login' : 'signup';
+            
+            window.eventDataLayer.event.push({
+                event: "formModeSwitch",
+                form: {
+                    formId: formId,
+                    formName: formName,
+                    newMode: newMode
+                }
+            });
+            console.log(`Form mode switched to: ${newMode}`, window.eventDataLayer.event);
+            
+            // Reset the form state in the manager for the new mode
+            delete this.forms[formId];
+        }
+    }
+
+    // =======================================================================
+    // Initialization and Global Exposure
+    // =======================================================================
+
+    // Initialize the manager
+    const formDataLayer = new FormDataLayerManager();
+    
+    // Create a global helper object that your React component will use
+    window.reactFormHelpers = {
+        onFormModeSwitch: (isLogin) => formDataLayer.onFormModeSwitch(isLogin),
+        onLoginSignupFormStart: (isLogin, fieldName) => formDataLayer.onLoginSignupFormStart(isLogin, fieldName),
+        onFieldInteraction: (fieldName, interactionType, isLogin) => formDataLayer.onFieldInteraction(fieldName, interactionType, isLogin),
+        onValidationError: (errorField, isLogin) => formDataLayer.onValidationError(errorField, isLogin),
+        onFormSubmit: (isLogin, success) => formDataLayer.onFormSubmit(isLogin, success)
+    };
+
+    console.log("Form data layer manager loaded and initialized.");
+</script>
+
 
   </body>
 </html>

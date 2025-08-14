@@ -103,6 +103,7 @@ const AppContent = () => {
 function App() {
   React.useEffect(() => {
     initializeDigitalData();
+
   }, []);
 
   return (
