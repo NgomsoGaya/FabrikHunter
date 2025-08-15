@@ -739,7 +739,7 @@ window.debugPageDataLayer = () => {
 <!-- THIS IS AN EVENT DATA LAYER FORM TRACKER -->
 <script>
     // =======================================================================
-    // Dual Data Layer Initialization and Form Manager
+    // Data Layer Initialization and Form Manager
     // =======================================================================
 
     // Initialize the global digitalData and eventDataLayer objects.
@@ -786,6 +786,7 @@ window.debugPageDataLayer = () => {
             const formName = this.getFormNameById(formId);
             const mode = isLogin ? 'login' : 'signup';
 
+            // Corrected logic: Initialize this.forms[formId] if it doesn't exist
             if (!this.forms[formId]) {
                 this.forms[formId] = { started: false, mode: mode, fieldsInteracted: new Set() };
             }
