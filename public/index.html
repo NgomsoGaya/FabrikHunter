@@ -738,24 +738,42 @@ window.debugPageDataLayer = () => {
 
 <!-- THIS IS AN EVENT DATA LAYER FORM TRACKER -->
 <script>
-    // Initialize the global eventDataLayer object if it doesn't exist.
-    // This is the central object where all tracking data will be stored.
-    if (!window.eventDataLayer) {
-        window.eventDataLayer = {
-            event: []
-        };
+    // =======================================================================
+    // Dual Data Layer Initialization and Form Manager
+    // =======================================================================
+
+    // Initialize the global digitalData and eventDataLayer objects.
+    function initializeDataLayers() {
+        if (!window.digitalData) {
+            window.digitalData = { event: [], form: {} };
+        } else if (!Array.isArray(window.digitalData.event)) {
+            window.digitalData.event = [];
+        }
+
+        if (!window.eventDataLayer) {
+            window.eventDataLayer = { event: [], form: {} };
+        } else if (!Array.isArray(window.eventDataLayer.event)) {
+            window.eventDataLayer.event = [];
+        }
+    }
+    initializeDataLayers();
+
+    // Single function to push events to both data layers
+    function pushEvent(eventObject) {
+        if (window.digitalData && Array.isArray(window.digitalData.event)) {
+            window.digitalData.event.push(eventObject);
+        }
+        if (window.eventDataLayer && Array.isArray(window.eventDataLayer.event)) {
+            window.eventDataLayer.event.push(eventObject);
+        }
+        console.log("Event tracked in both data layers:", eventObject);
     }
 
-    // =======================================================================
-    // Form Data Layer Manager
-    // Manages all form-related events and interactions for the Login/Signup form.
-    // =======================================================================
     class FormDataLayerManager {
         constructor() {
             this.forms = {};
         }
 
-        // Helper to get a human-readable form name
         getFormNameById(formId) {
             const formNames = {
                 'loginSignupForm': 'Login/Signup Form'
@@ -763,7 +781,6 @@ window.debugPageDataLayer = () => {
             return formNames[formId] || formId;
         }
 
-        // Tracks when a user starts interacting with a form
         onLoginSignupFormStart(isLogin, fieldName) {
             const formId = 'loginSignupForm';
             const formName = this.getFormNameById(formId);
@@ -775,7 +792,7 @@ window.debugPageDataLayer = () => {
 
             if (!this.forms[formId].started) {
                 this.forms[formId].started = true;
-                window.eventDataLayer.event.push({
+                const event = {
                     event: "formStart",
                     form: {
                         formId: formId,
@@ -783,23 +800,20 @@ window.debugPageDataLayer = () => {
                         formMode: mode,
                         firstInteractionField: fieldName
                     }
-                });
-                console.log("Form start tracked:", window.eventDataLayer.event);
+                };
+                pushEvent(event);
             }
         }
         
-        // Tracks individual field interactions (focus, blur, input, etc.)
         onFieldInteraction(fieldName, interactionType, isLogin) {
             const formId = 'loginSignupForm';
-            // Only track if the form has been started
             if (!this.forms[formId]) return;
 
-            // Prevent duplicate tracking for the same field interaction
             const interactionKey = `${fieldName}-${interactionType}`;
             if (!this.forms[formId].fieldsInteracted.has(interactionKey)) {
                 this.forms[formId].fieldsInteracted.add(interactionKey);
                 const mode = isLogin ? 'login' : 'signup';
-                window.eventDataLayer.event.push({
+                const event = {
                     event: "formFieldInteraction",
                     form: {
                         formId: formId,
@@ -808,16 +822,15 @@ window.debugPageDataLayer = () => {
                         fieldName: fieldName,
                         interactionType: interactionType
                     }
-                });
-                console.log(`Field interaction tracked: ${fieldName} (${interactionType})`, window.eventDataLayer.event);
+                };
+                pushEvent(event);
             }
         }
 
-        // Tracks form validation errors
         onValidationError(errorField, isLogin) {
             const formId = 'loginSignupForm';
             const mode = isLogin ? 'login' : 'signup';
-            window.eventDataLayer.event.push({
+            const event = {
                 event: "formValidationError",
                 form: {
                     formId: formId,
@@ -825,17 +838,16 @@ window.debugPageDataLayer = () => {
                     formMode: mode,
                     errorField: errorField
                 }
-            });
-            console.log(`Validation error tracked on field: ${errorField}`, window.eventDataLayer.event);
+            };
+            pushEvent(event);
         }
 
-        // Tracks successful form submission
         onFormSubmit(isLogin, success) {
             const formId = 'loginSignupForm';
             const formName = this.getFormNameById(formId);
             const mode = isLogin ? 'login' : 'signup';
             
-            window.eventDataLayer.event.push({
+            const event = {
                 event: "formSubmit",
                 form: {
                     formId: formId,
@@ -843,42 +855,41 @@ window.debugPageDataLayer = () => {
                     formMode: mode,
                     status: success ? 'success' : 'failure'
                 }
-            });
-            console.log(`Form submission tracked: ${success ? 'success' : 'failure'}`, window.eventDataLayer.event);
+            };
+            pushEvent(event);
             
-            // Reset the form state for the next interaction
-            delete this.forms[formId];
+            if (this.forms[formId]) {
+                delete this.forms[formId];
+            }
         }
 
-        // Tracks when a user switches between form modes (Login/Signup)
         onFormModeSwitch(isLogin) {
             const formId = 'loginSignupForm';
             const formName = this.getFormNameById(formId);
             const newMode = isLogin ? 'login' : 'signup';
             
-            window.eventDataLayer.event.push({
+            const event = {
                 event: "formModeSwitch",
                 form: {
                     formId: formId,
                     formName: formName,
                     newMode: newMode
                 }
-            });
-            console.log(`Form mode switched to: ${newMode}`, window.eventDataLayer.event);
+            };
+            pushEvent(event);
             
-            // Reset the form state in the manager for the new mode
-            delete this.forms[formId];
+            if (this.forms[formId]) {
+                delete this.forms[formId];
+            }
         }
     }
 
     // =======================================================================
-    // Initialization and Global Exposure
+    // Global Exposure
     // =======================================================================
 
-    // Initialize the manager
     const formDataLayer = new FormDataLayerManager();
     
-    // Create a global helper object that your React component will use
     window.reactFormHelpers = {
         onFormModeSwitch: (isLogin) => formDataLayer.onFormModeSwitch(isLogin),
         onLoginSignupFormStart: (isLogin, fieldName) => formDataLayer.onLoginSignupFormStart(isLogin, fieldName),
@@ -887,7 +898,7 @@ window.debugPageDataLayer = () => {
         onFormSubmit: (isLogin, success) => formDataLayer.onFormSubmit(isLogin, success)
     };
 
-    console.log("Form data layer manager loaded and initialized.");
+    console.log("Form data layer manager loaded and initialized for both digitalData and eventDataLayer.");
 </script>
 
 
