@@ -3,13 +3,13 @@ import './CSS/LoginSignup.css';
 
 // A centralized function to push events to both data layers
 const pushToDataLayers = (eventObject) => {
-    if (window.digitalData && Array.isArray(window.digitalData.event)) {
-        window.digitalData.event.push(eventObject);
-    }
-    if (window.eventDataLayer && Array.isArray(window.eventDataLayer.event)) {
-        window.eventDataLayer.event.push(eventObject);
-    }
-    console.log("Event tracked in both data layers:", eventObject);
+  if (window.digitalData && Array.isArray(window.digitalData.event)) {
+    window.digitalData.event.push(eventObject);
+  }
+  if (window.eventDataLayer && Array.isArray(window.eventDataLayer.event)) {
+    window.eventDataLayer.event.push(eventObject);
+  }
+  console.log("Event tracked in both data layers:", eventObject);
 };
 
 export const LoginSignup = () => {
@@ -23,29 +23,72 @@ export const LoginSignup = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Initialize digitalData on component mount
+  // Initialize digitalData and eventDataLayer on component mount
   useEffect(() => {
-    initializeDigitalData();
-    // Also ensure eventDataLayer is initialized
+    // Correctly initialize both data layers with their full structure
+    if (!window.digitalData) {
+        window.digitalData = {
+            event: [],
+            form: {
+                formId: "loginSignupForm",
+                formName: "Login/Signup Form",
+                formStart: false,
+                formSubmit: false
+            }
+        };
+    } else if (!window.digitalData.form) {
+        window.digitalData.form = {
+            formId: "loginSignupForm",
+            formName: "Login/Signup Form",
+            formStart: false,
+            formSubmit: false
+        };
+    }
+    
     if (!window.eventDataLayer) {
-        window.eventDataLayer = { event: [], page: {}, user: {} };
+        window.eventDataLayer = {
+            event: [],
+            form: {
+                formId: "loginSignupForm",
+                formName: "Login/Signup Form",
+                formStart: false,
+                formSubmit: false
+            }
+        };
+    } else if (!window.eventDataLayer.form) {
+        window.eventDataLayer.form = {
+            formId: "loginSignupForm",
+            formName: "Login/Signup Form",
+            formStart: false,
+            formSubmit: false
+        };
     }
   }, []);
 
   // Track form start when an input field is focused
-  const handleFormStart = () => {
-    // We'll rely on our new centralized function for pushing
-    // First, check if the form start event has already been tracked
-    if (window.digitalData && !window.digitalData.form.formStart) {
+  const handleFormStart = (fieldName) => {
+    // Ensure form object exists on both data layers
+    if (!window.digitalData || !window.digitalData.form || !window.eventDataLayer || !window.eventDataLayer.form) {
+        console.error("Data layers are not initialized correctly.");
+        return;
+    }
+
+    // Use a single, reliable flag to track if the form start event has been sent
+    if (!window.digitalData.form.formStart) {
+        // Set the flags for both data layers
         window.digitalData.form.formStart = true;
-        
+        if (window.eventDataLayer.form) {
+          window.eventDataLayer.form.formStart = true;
+        }
+
         // Create the event object
         const eventObject = {
-          event: "formStart",
-          form: {
-            formId: window.digitalData.form.formId || "loginSignupForm",
-            formName: window.digitalData.form.formName || "Login/Signup Form"
-          }
+            event: "formStart",
+            form: {
+                formId: "loginSignupForm",
+                formName: "Login/Signup Form",
+                firstInteractionField: fieldName
+            }
         };
 
         // Push to both data layers
@@ -87,29 +130,33 @@ export const LoginSignup = () => {
     setError('');
     setSuccess('');
 
-    if (!validateForm()) {
-        // Here you could also track a form submission failure event
+    const isFormValid = validateForm();
+
+    const eventObject = {
+        event: "formSubmit",
+        form: {
+            formId: "loginSignupForm",
+            formName: "Login/Signup Form",
+            status: isFormValid ? 'success' : 'failure'
+        }
+    };
+    pushToDataLayers(eventObject);
+
+    if (!isFormValid) {
+        // Here you could also track a form submission failure event if desired
         return;
     }
 
-    // Track form submit
-    if (window.digitalData) {
+    // Reset the form start flags on both data layers after submission
+    if (window.digitalData && window.digitalData.form) {
+        window.digitalData.form.formStart = false;
         window.digitalData.form.formSubmit = true;
-
-        // Create the event object
-        const eventObject = {
-            event: "formSubmit",
-            form: {
-                formId: window.digitalData.form.formId || "loginSignupForm",
-                formName: window.digitalData.form.formName || "Login/Signup Form"
-            }
-        };
-
-        // Push to both data layers
-        pushToDataLayers(eventObject);
+    }
+    if (window.eventDataLayer && window.eventDataLayer.form) {
+        window.eventDataLayer.form.formStart = false;
+        window.eventDataLayer.form.formSubmit = true;
     }
 
-    // Simple success message instead of API call
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
 
     // Reset form after successful submission
@@ -123,7 +170,6 @@ export const LoginSignup = () => {
     }
   };
 
-  // Additional handler for switching modes
   const handleModeSwitch = () => {
     setIsLogin(!isLogin);
     setError('');
@@ -135,7 +181,6 @@ export const LoginSignup = () => {
         agreeToTerms: false
     });
 
-    // Create and push the event for mode switching
     const eventObject = {
         event: "formModeSwitch",
         form: {
@@ -145,6 +190,16 @@ export const LoginSignup = () => {
         }
     };
     pushToDataLayers(eventObject);
+
+    // Reset form flags on data layers after mode switch
+    if (window.digitalData && window.digitalData.form) {
+      window.digitalData.form.formStart = false;
+      window.digitalData.form.formSubmit = false;
+    }
+    if (window.eventDataLayer && window.eventDataLayer.form) {
+      window.eventDataLayer.form.formStart = false;
+      window.eventDataLayer.form.formSubmit = false;
+    }
   };
 
   return (
@@ -160,7 +215,7 @@ export const LoginSignup = () => {
                 placeholder='Your Name'
                 value={formData.name}
                 onChange={handleChange}
-                onFocus={handleFormStart}
+                onFocus={() => handleFormStart('name')}
               />
             )}
             <input
@@ -169,7 +224,7 @@ export const LoginSignup = () => {
               placeholder='Email Address'
               value={formData.email}
               onChange={handleChange}
-              onFocus={handleFormStart}
+              onFocus={() => handleFormStart('email')}
             />
             <input
               type="password"
@@ -177,7 +232,7 @@ export const LoginSignup = () => {
               placeholder='Password'
               value={formData.password}
               onChange={handleChange}
-              onFocus={handleFormStart}
+              onFocus={() => handleFormStart('password')}
             />
           </div>
 
@@ -210,27 +265,4 @@ export const LoginSignup = () => {
       </div>
     </div>
   );
-};
-
-// This function can remain outside the component as it doesn't rely on state
-export const initializeDigitalData = () => {
-    if (!window.digitalData) {
-        window.digitalData = {
-            event: [],
-            page: { name: "", category: "", type: "category" },
-            user: {},
-            ecommerce: {},
-            subscriptionBanner: {},
-            personalization: {},
-            form: {
-                formId: "loginSignupForm",
-                formName: "Login/Signup Form",
-                formStart: false,
-                formSubmit: false
-            }
-        };
-    } else if (!Array.isArray(window.digitalData.event)) {
-        window.digitalData.event = [];
-    }
-    console.log("DigitalData initialized:", window.digitalData);
 };
