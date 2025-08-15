@@ -25,75 +25,49 @@ export const LoginSignup = () => {
 
   // Initialize digitalData and eventDataLayer on component mount
   useEffect(() => {
-    // Correctly initialize both data layers with their full structure
-    if (!window.digitalData) {
-        window.digitalData = {
-            event: [],
-            form: {
-                formId: "loginSignupForm",
-                formName: "Login/Signup Form",
-                formStart: false,
-                formSubmit: false
-            }
-        };
-    } else if (!window.digitalData.form) {
-        window.digitalData.form = {
-            formId: "loginSignupForm",
-            formName: "Login/Signup Form",
-            formStart: false,
-            formSubmit: false
-        };
-    }
-    
+    // Ensure eventDataLayer is initialized without a form object
     if (!window.eventDataLayer) {
         window.eventDataLayer = {
             event: [],
-            form: {
-                formId: "loginSignupForm",
-                formName: "Login/Signup Form",
-                formStart: false,
-                formSubmit: false
-            }
+            page: {},
+            user: {}
         };
-    } else if (!window.eventDataLayer.form) {
-        window.eventDataLayer.form = {
-            formId: "loginSignupForm",
-            formName: "Login/Signup Form",
-            formStart: false,
-            formSubmit: false
+    }
+    
+    // Ensure digitalData is initialized with the correct structure
+    if (!window.digitalData) {
+        window.digitalData = {
+            event: [],
+            form: {}, // Initialize with an empty form object
         };
     }
   }, []);
 
   // Track form start when an input field is focused
   const handleFormStart = (fieldName) => {
-    // Ensure form object exists on both data layers
-    if (!window.digitalData || !window.digitalData.form || !window.eventDataLayer || !window.eventDataLayer.form) {
-        console.error("Data layers are not initialized correctly.");
+    // Check if form has already been started to prevent duplicate events
+    if (window.digitalData && window.digitalData.form.formStart) {
         return;
     }
 
-    // Use a single, reliable flag to track if the form start event has been sent
-    if (!window.digitalData.form.formStart) {
-        // Set the flags for both data layers
-        window.digitalData.form.formStart = true;
-        if (window.eventDataLayer.form) {
-          window.eventDataLayer.form.formStart = true;
-        }
-
-        // Create the event object
-        const eventObject = {
-            event: "formStart",
-            form: {
-                formId: "loginSignupForm",
-                formName: "Login/Signup Form",
-                firstInteractionField: fieldName
-            }
-        };
-
-        // Push to both data layers
-        pushToDataLayers(eventObject);
+    // Set the form start flag on digitalData
+    if (window.digitalData && window.digitalData.form) {
+      window.digitalData.form.formStart = true;
     }
+
+    // Create the event object
+    const eventObject = {
+      event: "formStart",
+      form: {
+        formId: "loginSignupForm",
+        formName: "Login/Signup Form",
+        firstInteractionField: fieldName,
+        formStatus: 'started' // Add a status to the form event
+      }
+    };
+
+    // Push the event to both data layers
+    pushToDataLayers(eventObject);
   };
 
   const handleChange = (e) => {
@@ -105,22 +79,21 @@ export const LoginSignup = () => {
   };
 
   const validateForm = () => {
-    // ... your existing validation logic
     if (!isLogin && !formData.name.trim()) {
-        setError('Name is required');
-        return false;
+      setError('Name is required');
+      return false;
     }
     if (!formData.email.trim()) {
-        setError('Email is required');
-        return false;
+      setError('Email is required');
+      return false;
     }
     if (!formData.password.trim()) {
-        setError('Password must not be empty');
-        return false;
+      setError('Password must not be empty');
+      return false;
     }
     if (!isLogin && !formData.agreeToTerms) {
-        setError('Please agree to the terms and conditions');
-        return false;
+      setError('Please agree to the terms and conditions');
+      return false;
     }
     return true;
   };
@@ -131,35 +104,36 @@ export const LoginSignup = () => {
     setSuccess('');
 
     const isFormValid = validateForm();
+    const formStatus = isFormValid ? 'success' : 'failure';
 
+    // Create the event object
     const eventObject = {
-        event: "formSubmit",
-        form: {
-            formId: "loginSignupForm",
-            formName: "Login/Signup Form",
-            status: isFormValid ? 'success' : 'failure'
-        }
+      event: "formSubmit",
+      form: {
+        formId: "loginSignupForm",
+        formName: "Login/Signup Form",
+        formStatus: formStatus,
+        formIsSubmitted: true
+      }
     };
+    
+    // Push the event to both data layers
     pushToDataLayers(eventObject);
 
-    if (!isFormValid) {
-        // Here you could also track a form submission failure event if desired
-        return;
-    }
-
-    // Reset the form start flags on both data layers after submission
+    // Reset the form state flags on digitalData
     if (window.digitalData && window.digitalData.form) {
-        window.digitalData.form.formStart = false;
-        window.digitalData.form.formSubmit = true;
+      window.digitalData.form.formStart = false;
+      window.digitalData.form.formSubmit = true;
     }
-    if (window.eventDataLayer && window.eventDataLayer.form) {
-        window.eventDataLayer.form.formStart = false;
-        window.eventDataLayer.form.formSubmit = true;
+    
+    if (!isFormValid) {
+        setError('Please fill out the form correctly.');
+        return;
     }
 
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
 
-    // Reset form after successful submission
+    // Reset form data after successful submission
     if (!isLogin) {
       setFormData({
         name: '',
@@ -181,24 +155,22 @@ export const LoginSignup = () => {
         agreeToTerms: false
     });
 
+    const newMode = isLogin ? "signup" : "login";
+
     const eventObject = {
-        event: "formModeSwitch",
-        form: {
-            formId: "loginSignupForm",
-            formName: "Login/Signup Form",
-            newMode: isLogin ? "signup" : "login"
-        }
+      event: "formModeSwitch",
+      form: {
+        formId: "loginSignupForm",
+        formName: "Login/Signup Form",
+        newMode: newMode
+      }
     };
     pushToDataLayers(eventObject);
 
-    // Reset form flags on data layers after mode switch
+    // Reset form flags on digitalData after mode switch
     if (window.digitalData && window.digitalData.form) {
       window.digitalData.form.formStart = false;
       window.digitalData.form.formSubmit = false;
-    }
-    if (window.eventDataLayer && window.eventDataLayer.form) {
-      window.eventDataLayer.form.formStart = false;
-      window.eventDataLayer.form.formSubmit = false;
     }
   };
 
