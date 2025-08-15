@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './CSS/LoginSignup.css';
 
+// A centralized function to push events to both data layers
+const pushToDataLayers = (eventObject) => {
+    if (window.digitalData && Array.isArray(window.digitalData.event)) {
+        window.digitalData.event.push(eventObject);
+    }
+    if (window.eventDataLayer && Array.isArray(window.eventDataLayer.event)) {
+        window.eventDataLayer.event.push(eventObject);
+    }
+    console.log("Event tracked in both data layers:", eventObject);
+};
+
 export const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,33 +26,30 @@ export const LoginSignup = () => {
   // Initialize digitalData on component mount
   useEffect(() => {
     initializeDigitalData();
+    // Also ensure eventDataLayer is initialized
+    if (!window.eventDataLayer) {
+        window.eventDataLayer = { event: [], page: {}, user: {} };
+    }
   }, []);
 
   // Track form start when an input field is focused
   const handleFormStart = () => {
-    if (!window.digitalData) {
-      console.error("digitalData is not initialized.");
-      return;
-    }
+    // We'll rely on our new centralized function for pushing
+    // First, check if the form start event has already been tracked
+    if (window.digitalData && !window.digitalData.form.formStart) {
+        window.digitalData.form.formStart = true;
+        
+        // Create the event object
+        const eventObject = {
+          event: "formStart",
+          form: {
+            formId: window.digitalData.form.formId || "loginSignupForm",
+            formName: window.digitalData.form.formName || "Login/Signup Form"
+          }
+        };
 
-    if (!window.digitalData.form) {
-      window.digitalData.form = {}; // Initialize form object if it doesn't exist
-    }
-
-    if (!Array.isArray(window.digitalData.event)) {
-      window.digitalData.event = []; // Ensure event is an array
-    }
-
-    if (!window.digitalData.form.formStart) {
-      window.digitalData.form.formStart = true;
-      window.digitalData.event.push({
-        event: "formStart",
-        form: {
-          formId: window.digitalData.form.formId || "loginSignupForm",
-          formName: window.digitalData.form.formName || "Login/Signup Form"
-        }
-      });
-      console.log("Form start tracked:", window.digitalData);
+        // Push to both data layers
+        pushToDataLayers(eventObject);
     }
   };
 
@@ -54,21 +62,22 @@ export const LoginSignup = () => {
   };
 
   const validateForm = () => {
+    // ... your existing validation logic
     if (!isLogin && !formData.name.trim()) {
-      setError('Name is required');
-      return false;
+        setError('Name is required');
+        return false;
     }
     if (!formData.email.trim()) {
-      setError('Email is required');
-      return false;
+        setError('Email is required');
+        return false;
     }
     if (!formData.password.trim()) {
-      setError('Password must not be empty');
-      return false;
+        setError('Password must not be empty');
+        return false;
     }
     if (!isLogin && !formData.agreeToTerms) {
-      setError('Please agree to the terms and conditions');
-      return false;
+        setError('Please agree to the terms and conditions');
+        return false;
     }
     return true;
   };
@@ -78,31 +87,27 @@ export const LoginSignup = () => {
     setError('');
     setSuccess('');
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+        // Here you could also track a form submission failure event
+        return;
+    }
 
     // Track form submit
-    if (!window.digitalData) {
-      console.error("digitalData is not initialized.");
-      return;
-    }
+    if (window.digitalData) {
+        window.digitalData.form.formSubmit = true;
 
-    if (!window.digitalData.form) {
-      window.digitalData.form = {}; // Initialize form object if it doesn't exist
-    }
+        // Create the event object
+        const eventObject = {
+            event: "formSubmit",
+            form: {
+                formId: window.digitalData.form.formId || "loginSignupForm",
+                formName: window.digitalData.form.formName || "Login/Signup Form"
+            }
+        };
 
-    if (!Array.isArray(window.digitalData.event)) {
-      window.digitalData.event = []; // Ensure event is an array
+        // Push to both data layers
+        pushToDataLayers(eventObject);
     }
-
-    window.digitalData.form.formSubmit = true;
-    window.digitalData.event.push({
-      event: "formSubmit",
-      form: {
-        formId: window.digitalData.form.formId || "loginSignupForm",
-        formName: window.digitalData.form.formName || "Login/Signup Form"
-      }
-    });
-    console.log("Form submit tracked:", window.digitalData);
 
     // Simple success message instead of API call
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
@@ -118,6 +123,30 @@ export const LoginSignup = () => {
     }
   };
 
+  // Additional handler for switching modes
+  const handleModeSwitch = () => {
+    setIsLogin(!isLogin);
+    setError('');
+    setSuccess('');
+    setFormData({
+        name: '',
+        email: '',
+        password: '',
+        agreeToTerms: false
+    });
+
+    // Create and push the event for mode switching
+    const eventObject = {
+        event: "formModeSwitch",
+        form: {
+            formId: "loginSignupForm",
+            formName: "Login/Signup Form",
+            newMode: isLogin ? "signup" : "login"
+        }
+    };
+    pushToDataLayers(eventObject);
+  };
+
   return (
     <div className='loginsignup'>
       <div className="loginsignup-container">
@@ -131,7 +160,7 @@ export const LoginSignup = () => {
                 placeholder='Your Name'
                 value={formData.name}
                 onChange={handleChange}
-                onFocus={handleFormStart} // Track form start on focus
+                onFocus={handleFormStart}
               />
             )}
             <input
@@ -140,7 +169,7 @@ export const LoginSignup = () => {
               placeholder='Email Address'
               value={formData.email}
               onChange={handleChange}
-              onFocus={handleFormStart} // Track form start on focus
+              onFocus={handleFormStart}
             />
             <input
               type="password"
@@ -148,7 +177,7 @@ export const LoginSignup = () => {
               placeholder='Password'
               value={formData.password}
               onChange={handleChange}
-              onFocus={handleFormStart} // Track form start on focus
+              onFocus={handleFormStart}
             />
           </div>
 
@@ -161,17 +190,7 @@ export const LoginSignup = () => {
 
           <p className="loginsignup-login">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <span onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setSuccess('');
-              setFormData({
-                name: '',
-                email: '',
-                password: '',
-                agreeToTerms: false
-              });
-            }}>
+            <span onClick={handleModeSwitch}>
               {isLogin ? 'Sign Up Here' : 'Login Here'}
             </span>
           </p>
@@ -193,53 +212,25 @@ export const LoginSignup = () => {
   );
 };
 
+// This function can remain outside the component as it doesn't rely on state
 export const initializeDigitalData = () => {
-  if (!window.digitalData) {
-    window.digitalData = {
-      event: [], // Ensure event is initialized as an array
-      page: {
-        name: "",
-        category: "",
-        type: "category"
-      },
-      user: {
-        UserID: "",
-        status: "",
-        email: "",
-        behavior: {
-          viewedCategories: [],
-          viewedProducts: [],
-          interactedWith: []
-        },
-        mostViewed: {
-          category: "",
-          product: ""
-        }
-      },
-      ecommerce: {
-        cart: {
-          productsAdded: [],
-          cartValue: 0
-        }
-      },
-      subscriptionBanner: {
-        variant: "",
-        clicked: false
-      },
-      personalization: {
-        homepageBanner: "",
-        emailRecommendation: ""
-      },
-      form: {
-        formId: "loginSignupForm",
-        formName: "Login/Signup Form",
-        formStart: false,
-        formSubmit: false
-      }
-    };
-  } else if (!Array.isArray(window.digitalData.event)) {
-    // If event exists but is not an array, reset it to an array
-    window.digitalData.event = [];
-  }
-  console.log("DigitalData initialized:", window.digitalData);
+    if (!window.digitalData) {
+        window.digitalData = {
+            event: [],
+            page: { name: "", category: "", type: "category" },
+            user: {},
+            ecommerce: {},
+            subscriptionBanner: {},
+            personalization: {},
+            form: {
+                formId: "loginSignupForm",
+                formName: "Login/Signup Form",
+                formStart: false,
+                formSubmit: false
+            }
+        };
+    } else if (!Array.isArray(window.digitalData.event)) {
+        window.digitalData.event = [];
+    }
+    console.log("DigitalData initialized:", window.digitalData);
 };
