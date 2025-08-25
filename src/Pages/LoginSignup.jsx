@@ -43,7 +43,7 @@ export const LoginSignup = () => {
   // Tracks the start of the form. This event fires only once per form session.
   const handleFormStart = (fieldName) => {
     // We use a flag on the data layers to prevent multiple formStart events.
-    if (!window.digitalData.form.formStarted) {
+    if (!window.digitalData?.form?.formStarted) {
       // Set the flag for both data layers
       window.digitalData.form.formStarted = true;
       window.eventDataLayer.form.formStarted = true;
