@@ -26,8 +26,10 @@ export const LoginSignup = () => {
   // error and success messages for user feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // This new state variable tracks the order of unique fields a user interacts with.
+  // This tracks the order of unique fields a user interacts with.
   const [interactionFields, setInteractionFields] = useState([]);
+  // Track if form has been started to prevent duplicate formStart events
+  const [formStarted, setFormStarted] = useState(false);
 
   // Initialize digitalData and eventDataLayer on component mount.
   // This ensures the data layers are ready to accept events.
@@ -42,11 +44,9 @@ export const LoginSignup = () => {
 
   // Tracks the start of the form. This event fires only once per form session.
   const handleFormStart = (fieldName) => {
-    // We use a flag on the data layers to prevent multiple formStart events.
-    if (!window.digitalData?.form?.formStarted) {
-      // Set the flag for both data layers
-      window.digitalData.form.formStarted = true;
-      window.eventDataLayer.form.formStarted = true;
+    // Use component state to prevent multiple formStart events
+    if (!formStarted) {
+      setFormStarted(true);
 
       // Initialize the interactionFields array with the first field name
       setInteractionFields([fieldName]);
@@ -58,23 +58,31 @@ export const LoginSignup = () => {
           formId: "loginSignupForm",
           formName: "Login/Signup Form",
           formStatus: 'started',
-          // The form has not been submitted yet
           formIsSubmitted: false,
-          // The first field a user interacted with
           firstInteractionField: fieldName,
-          // Track the sequence of field interactions
-          interactionFields: [fieldName]
+          interactionFields: [fieldName],
+          formMode: isLogin ? 'login' : 'signup' // Added form mode tracking
         }
       };
 
       // Push the event to both data layers
       pushToDataLayers(eventObject);
+    } else {
+      // If form already started, just track field interaction
+      if (!interactionFields.includes(fieldName)) {
+        setInteractionFields(prev => [...prev, fieldName]);
+      }
     }
   };
 
   // Handles changes to form inputs. It also tracks the order of field interactions.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    // Clear any existing errors when user starts typing
+    if (error) {
+      setError('');
+    }
     
     // Update the form data state
     setFormData(prev => ({
@@ -91,6 +99,9 @@ export const LoginSignup = () => {
 
   // Validates the form data before submission
   const validateForm = () => {
+    // Clear previous errors
+    setError('');
+    
     if (!isLogin && !formData.name.trim()) {
       setError('Name is required');
       return false;
@@ -99,10 +110,25 @@ export const LoginSignup = () => {
       setError('Email is required');
       return false;
     }
-    if (!formData.password.trim()) {
-      setError('Password must not be empty');
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
       return false;
     }
+    
+    if (!formData.password.trim()) {
+      setError('Password is required');
+      return false;
+    }
+    
+    // Password strength validation for signup
+    if (!isLogin && formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    
     if (!isLogin && !formData.agreeToTerms) {
       setError('Please agree to the terms and conditions');
       return false;
@@ -113,8 +139,7 @@ export const LoginSignup = () => {
   // Handles form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setSuccess(''); // Clear previous success messages
 
     const isFormValid = validateForm();
     const formStatus = isFormValid ? 'success' : 'failure';
@@ -126,83 +151,62 @@ export const LoginSignup = () => {
         formId: "loginSignupForm",
         formName: "Login/Signup Form",
         formStatus: formStatus,
-        // The form has been submitted
         formIsSubmitted: true,
-        // Track the sequence of field interactions on submit
         interactionFields: interactionFields,
-        // First interaction field is the first element of the array
-        firstInteractionField: interactionFields[0] || null
+        firstInteractionField: interactionFields[0] || null,
+        formMode: isLogin ? 'login' : 'signup',
+        validationErrors: !isFormValid ? [error] : []
       }
     };
     
     // Push the event to both data layers
     pushToDataLayers(eventObject);
-    // Assuming _satellite is defined for a tool like Adobe Launch
-    // if (typeof _satellite !== 'undefined') {
-    //   _satellite.track('globalFormComplete');
-    // }
 
-    // Reset the form state flags on data layers after submission
-    if (window.digitalData && window.digitalData.form) {
-      window.digitalData.form.formStarted = false;
-    }
-    if (window.eventDataLayer && window.eventDataLayer.form) {
-      window.eventDataLayer.form.formStarted = false;
-    }
-    
     if (!isFormValid) {
-      setError('Please fill out the form correctly.');
-      return;
+      return; // Error message already set in validateForm
     }
 
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
+    
+    // Reset form tracking state after successful submission
+    resetFormState();
+  };
 
-    // Reset form data after successful submission
-    if (!isLogin) {
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        agreeToTerms: false
-      });
-    }
+  // Helper function to reset form state
+  const resetFormState = () => {
+    setFormStarted(false);
+    setInteractionFields([]);
+    setError('');
+    setSuccess('');
   };
 
   // Handles the switch between login and signup modes
   const handleModeSwitch = () => {
-    setIsLogin(!isLogin);
-    setError('');
-    setSuccess('');
-    // Reset all form data and interaction tracking on mode switch
+    const newIsLogin = !isLogin;
+    setIsLogin(newIsLogin);
+    
+    // Reset all form data and tracking state on mode switch
     setFormData({
       name: '',
       email: '',
       password: '',
       agreeToTerms: false
     });
-    setInteractionFields([]);
+    resetFormState();
 
-    const newMode = isLogin ? "signup" : "login";
+    const newMode = newIsLogin ? "login" : "signup";
 
     const eventObject = {
       event: "formModeSwitch",
       form: {
         formId: "loginSignupForm",
         formName: "Login/Signup Form",
+        previousMode: isLogin ? "login" : "signup",
         newMode: newMode,
-        // The form is not submitted when the mode is switched
         formIsSubmitted: false
       }
     };
     pushToDataLayers(eventObject);
-
-    // Reset form flags on data layers after mode switch
-    if (window.digitalData && window.digitalData.form) {
-      window.digitalData.form.formStarted = false;
-    }
-    if (window.eventDataLayer && window.eventDataLayer.form) {
-      window.eventDataLayer.form.formStarted = false;
-    }
   };
 
   return (
@@ -219,6 +223,7 @@ export const LoginSignup = () => {
                 value={formData.name}
                 onChange={handleChange}
                 onFocus={() => handleFormStart('name')}
+                required={!isLogin}
               />
             )}
             <input
@@ -228,6 +233,7 @@ export const LoginSignup = () => {
               value={formData.email}
               onChange={handleChange}
               onFocus={() => handleFormStart('email')}
+              required
             />
             <input
               type="password"
@@ -236,8 +242,23 @@ export const LoginSignup = () => {
               value={formData.password}
               onChange={handleChange}
               onFocus={() => handleFormStart('password')}
+              required
             />
           </div>
+
+          {!isLogin && (
+            <div className="loginsignup-agree">
+              <input
+                type="checkbox"
+                name="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={handleChange}
+                onFocus={() => handleFormStart('agreeToTerms')}
+                required={!isLogin}
+              />
+              <p>By continuing, I agree to the terms of use & privacy policy</p>
+            </div>
+          )}
 
           {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
           {success && <p className="success-message" style={{ color: 'green' }}>{success}</p>}
@@ -248,22 +269,10 @@ export const LoginSignup = () => {
 
           <p className="loginsignup-login">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <span onClick={handleModeSwitch}>
+            <span onClick={handleModeSwitch} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
               {isLogin ? 'Sign Up Here' : 'Login Here'}
             </span>
           </p>
-
-          {!isLogin && (
-            <div className="loginsignup-agree">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-              />
-              <p>By continuing, I agree to the terms of use & privacy policy</p>
-            </div>
-          )}
         </form>
       </div>
     </div>
