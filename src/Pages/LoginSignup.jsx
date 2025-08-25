@@ -138,9 +138,9 @@ export const LoginSignup = () => {
     // Push the event to both data layers
     pushToDataLayers(eventObject);
     // Assuming _satellite is defined for a tool like Adobe Launch
-    if (typeof _satellite !== 'undefined') {
-      _satellite.track('globalFormComplete');
-    }
+    // if (typeof _satellite !== 'undefined') {
+    //   _satellite.track('globalFormComplete');
+    // }
 
     // Reset the form state flags on data layers after submission
     if (window.digitalData && window.digitalData.form) {
