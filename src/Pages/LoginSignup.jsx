@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // The CSS file is not provided, but we'll assume it exists for styling.
-// import './CSS/LoginSignup.css';
+import './CSS/LoginSignup.css';
 
 // A centralized function to push events to both data layers
 const pushToDataLayers = (eventObject) => {
