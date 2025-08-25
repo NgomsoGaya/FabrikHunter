@@ -13,7 +13,7 @@ const pushToDataLayers = (eventObject) => {
   console.log("Event tracked in both data layers:", eventObject);
 };
 
-const LoginSignup = () => {
+export const LoginSignup = () => {
   // isLogin determines whether the form is for login or sign up
   const [isLogin, setIsLogin] = useState(false);
   // formData stores the values of the form inputs
@@ -269,5 +269,3 @@ const LoginSignup = () => {
     </div>
   );
 };
-
-export default LoginSignup;
