@@ -30,6 +30,8 @@ export const LoginSignup = () => {
   const [interactionFields, setInteractionFields] = useState([]);
   // Track if form has been started to prevent duplicate formStart events
   const [formStarted, setFormStarted] = useState(false);
+  // Track focus count per field for perFormField events
+  const [fieldFocusCount, setFieldFocusCount] = useState({});
 
   // Initialize digitalData and eventDataLayer on component mount.
   // This ensures the data layers are ready to accept events.
@@ -41,6 +43,57 @@ export const LoginSignup = () => {
       window.eventDataLayer = { event: [], form: {} };
     }
   }, []);
+
+  // Handles the perFormField focus event - fires every time a field is focused
+  const handleFieldFocus = (fieldName) => {
+    // Update focus count for this field
+    const currentCount = fieldFocusCount[fieldName] || 0;
+    const newCount = currentCount + 1;
+    
+    setFieldFocusCount(prev => ({
+      ...prev,
+      [fieldName]: newCount
+    }));
+
+    // Create the perFormField event object
+    const eventObject = {
+      event: "perFormField",
+      form: {
+        formId: "loginSignupForm",
+        formName: "Login/Signup Form",
+        fieldName: fieldName,
+        fieldType: getFieldType(fieldName),
+        focusCount: newCount,
+        isFirstFocus: newCount === 1,
+        formMode: isLogin ? 'login' : 'signup',
+        totalInteractionFields: interactionFields.length,
+        fieldPosition: getFieldPosition(fieldName)
+      }
+    };
+
+    // Push the event to both data layers
+    pushToDataLayers(eventObject);
+  };
+
+  // Helper function to determine field type
+  const getFieldType = (fieldName) => {
+    switch (fieldName) {
+      case 'name': return 'text';
+      case 'email': return 'email';
+      case 'password': return 'password';
+      case 'agreeToTerms': return 'checkbox';
+      default: return 'unknown';
+    }
+  };
+
+  // Helper function to get field position in the form
+  const getFieldPosition = (fieldName) => {
+    const fieldOrder = isLogin 
+      ? ['email', 'password']
+      : ['name', 'email', 'password', 'agreeToTerms'];
+    
+    return fieldOrder.indexOf(fieldName) + 1;
+  };
 
   // Tracks the start of the form. This event fires only once per form session.
   const handleFormStart = (fieldName) => {
@@ -73,6 +126,12 @@ export const LoginSignup = () => {
         setInteractionFields(prev => [...prev, fieldName]);
       }
     }
+  };
+
+  // Combined focus handler that triggers both formStart and perFormField events
+  const handleFocus = (fieldName) => {
+    handleFormStart(fieldName);
+    handleFieldFocus(fieldName);
   };
 
   // Handles changes to form inputs. It also tracks the order of field interactions.
@@ -155,7 +214,8 @@ export const LoginSignup = () => {
         interactionFields: interactionFields,
         firstInteractionField: interactionFields[0] || null,
         formMode: isLogin ? 'login' : 'signup',
-        validationErrors: !isFormValid ? [error] : []
+        validationErrors: !isFormValid ? [error] : [],
+        fieldFocusData: fieldFocusCount // Include focus count data in submit event
       }
     };
     
@@ -176,6 +236,7 @@ export const LoginSignup = () => {
   const resetFormState = () => {
     setFormStarted(false);
     setInteractionFields([]);
+    setFieldFocusCount({});
     setError('');
     setSuccess('');
   };
@@ -222,7 +283,7 @@ export const LoginSignup = () => {
                 placeholder='Your Name'
                 value={formData.name}
                 onChange={handleChange}
-                onFocus={() => handleFormStart('name')}
+                onFocus={() => handleFocus('name')}
                 required={!isLogin}
               />
             )}
@@ -232,7 +293,7 @@ export const LoginSignup = () => {
               placeholder='Email Address'
               value={formData.email}
               onChange={handleChange}
-              onFocus={() => handleFormStart('email')}
+              onFocus={() => handleFocus('email')}
               required
             />
             <input
@@ -241,7 +302,7 @@ export const LoginSignup = () => {
               placeholder='Password'
               value={formData.password}
               onChange={handleChange}
-              onFocus={() => handleFormStart('password')}
+              onFocus={() => handleFocus('password')}
               required
             />
           </div>
@@ -253,7 +314,7 @@ export const LoginSignup = () => {
                 name="agreeToTerms"
                 checked={formData.agreeToTerms}
                 onChange={handleChange}
-                onFocus={() => handleFormStart('agreeToTerms')}
+                onFocus={() => handleFocus('agreeToTerms')}
                 required={!isLogin}
               />
               <p>By continuing, I agree to the terms of use & privacy policy</p>
