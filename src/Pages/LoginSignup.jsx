@@ -47,27 +47,30 @@ export const LoginSignup = () => {
   // Handles the perFormField focus event - fires every time a field is focused
   const handleFieldFocus = (fieldName) => {
     // Update focus count for this field
-    const currentCount = fieldFocusCount[fieldName] || 0;
-    const newCount = currentCount + 1;
+    // const currentCount = fieldFocusCount[fieldName] || 0;
+    // const newCount = currentCount + 1;
     
-    setFieldFocusCount(prev => ({
-      ...prev,
-      [fieldName]: newCount
-    }));
+    // setFieldFocusCount(prev => ({
+    //   ...prev,
+    //   [fieldName]: newCount
+    // }));
 
     // Create the perFormField event object
     const eventObject = {
-      event: "perFormField",
+      event: "formFieldInteraction",
       form: {
         formId: "loginSignupForm",
         formName: "Login/Signup Form",
         fieldName: fieldName,
         fieldType: getFieldType(fieldName),
-        focusCount: newCount,
-        isFirstFocus: newCount === 1,
+        // focusCount: newCount,
+        // isFirstFocus: newCount === 1,
         formMode: isLogin ? 'login' : 'signup',
-        totalInteractionFields: interactionFields.length,
-        fieldPosition: getFieldPosition(fieldName)
+        // totalInteractionFields: interactionFields.length,
+        // fieldPosition: getFieldPosition(fieldName)
+         formIsSubmitted: false,
+         interactionFields: [fieldName],
+         formMode: isLogin ? 'login' : 'signup'
       }
     };
 
