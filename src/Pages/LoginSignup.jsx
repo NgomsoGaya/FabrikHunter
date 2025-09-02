@@ -37,7 +37,7 @@ export const LoginSignup = () => {
   // This ensures the data layers are ready to accept events.
   useEffect(() => {
     if (!window.digitalData) {
-      window.digitalData = { form: {} };
+      window.digitalData = [];
     }
     if (!window.eventDataLayer) {
       window.eventDataLayer = [];
