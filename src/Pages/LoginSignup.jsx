@@ -10,7 +10,7 @@ const pushToDataLayers = (eventObject) => {
   if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
     window.eventDataLayer.push(eventObject);
   }
-  console.log("Event tracked in both data layers:", eventObject);
+
 };
 
 export const LoginSignup = () => {
@@ -40,21 +40,13 @@ export const LoginSignup = () => {
       window.digitalData = { form: {} };
     }
     if (!window.eventDataLayer) {
-      window.eventDataLayer = { form: {} };
+      window.eventDataLayer = [];
     }
   }, []);
 
   // Handles the perFormField focus event - fires every time a field is focused
   const handleFieldFocus = (fieldName) => {
-    // Update focus count for this field
-    // const currentCount = fieldFocusCount[fieldName] || 0;
-    // const newCount = currentCount + 1;
-    
-    // setFieldFocusCount(prev => ({
-    //   ...prev,
-    //   [fieldName]: newCount
-    // }));
-
+  
     // Create the perFormField event object
     const eventObject = {
       event: "formFieldInteraction",
