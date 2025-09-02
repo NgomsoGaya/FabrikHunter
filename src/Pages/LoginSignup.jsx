@@ -4,11 +4,11 @@ import './CSS/LoginSignup.css';
 
 // A centralized function to push events to both data layers
 const pushToDataLayers = (eventObject) => {
-  if (window.digitalData && Array.isArray(window.digitalData.event)) {
-    window.digitalData.event.push(eventObject);
+  if (window.digitalData && Array.isArray(window.digitalData)) {
+    window.digitalData.push(eventObject);
   }
-  if (window.eventDataLayer && Array.isArray(window.eventDataLayer.event)) {
-    window.eventDataLayer.event.push(eventObject);
+  if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
+    window.eventDataLayer.push(eventObject);
   }
   console.log("Event tracked in both data layers:", eventObject);
 };
@@ -37,10 +37,10 @@ export const LoginSignup = () => {
   // This ensures the data layers are ready to accept events.
   useEffect(() => {
     if (!window.digitalData) {
-      window.digitalData = { event: [], form: {} };
+      window.digitalData = { form: {} };
     }
     if (!window.eventDataLayer) {
-      window.eventDataLayer = { event: [], form: {} };
+      window.eventDataLayer = { form: {} };
     }
   }, []);
 
