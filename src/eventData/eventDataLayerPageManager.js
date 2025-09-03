@@ -381,6 +381,10 @@ class PageDataLayerManager {
 
     // Main method to populate all page data
     populatePageData() {
+         
+        
+        window.eventDataLayer = [];
+
         const subSections = this.getPageSubSections();
         
         window.eventDataLayer.page = {
