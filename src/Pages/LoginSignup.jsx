@@ -42,7 +42,16 @@ export const LoginSignup = () => {
     if (!window.eventDataLayer) {
       window.eventDataLayer = [];
     }
-  }, []);
+
+  //cleanup
+   return () => {
+      // Clear the eventDataLayer when the component unmounts
+      if (window.eventDataLayer) {
+        window.eventDataLayer = [];
+        console.log("eventDataLayer cleared on component unmount.");
+      }
+    };
+  }, [])
 
   // Handles the perFormField focus event - fires every time a field is focused
   const handleFieldFocus = (fieldName) => {
