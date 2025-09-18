@@ -13,6 +13,20 @@ const pushToDataLayers = (eventObject) => {
 
 };
 
+   // Function to clear only form-related events from the data layer
+    const clearFormEvents = () => {
+      if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
+        // Filter out all events that have a form-related event value
+        window.eventDataLayer = window.eventDataLayer.filter(eventObject =>
+          eventObject.event !== 'formStart' &&
+          eventObject.event !== 'formFieldInteraction' &&
+          eventObject.event !== 'formSubmit' &&
+          eventObject.event !== 'formModeSwitch'
+        );
+        console.log("Form interaction events cleared from eventDataLayer.");
+      }
+    };
+
 export const LoginSignup = () => {
   // isLogin determines whether the form is for login or sign up
   const [isLogin, setIsLogin] = useState(false);
@@ -43,19 +57,17 @@ export const LoginSignup = () => {
       window.eventDataLayer = [];
     }
 
-  //cleanup
-   return () => {
-      // Clear the eventDataLayer when the component unmounts
-      if (window.eventDataLayer) {
-        window.eventDataLayer = [];
-        console.log("eventDataLayer cleared on component unmount.");
-      }
+    //cleanup
+    return () => {
+
+      clearFormEvents(); // This only clears form-related events
+
     };
   }, [])
 
   // Handles the perFormField focus event - fires every time a field is focused
   const handleFieldFocus = (fieldName) => {
-  
+
     // Create the perFormField event object
     const eventObject = {
       event: "formFieldInteraction",
@@ -69,9 +81,9 @@ export const LoginSignup = () => {
         formMode: isLogin ? 'login' : 'signup',
         // totalInteractionFields: interactionFields.length,
         // fieldPosition: getFieldPosition(fieldName)
-         formIsSubmitted: false,
-         interactionFields: [fieldName],
-         formMode: isLogin ? 'login' : 'signup'
+        formIsSubmitted: false,
+        interactionFields: [fieldName],
+        formMode: isLogin ? 'login' : 'signup'
       }
     };
 
@@ -92,10 +104,10 @@ export const LoginSignup = () => {
 
   // Helper function to get field position in the form
   const getFieldPosition = (fieldName) => {
-    const fieldOrder = isLogin 
+    const fieldOrder = isLogin
       ? ['email', 'password']
       : ['name', 'email', 'password', 'agreeToTerms'];
-    
+
     return fieldOrder.indexOf(fieldName) + 1;
   };
 
@@ -141,12 +153,12 @@ export const LoginSignup = () => {
   // Handles changes to form inputs. It also tracks the order of field interactions.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     // Clear any existing errors when user starts typing
     if (error) {
       setError('');
     }
-    
+
     // Update the form data state
     setFormData(prev => ({
       ...prev,
@@ -164,7 +176,7 @@ export const LoginSignup = () => {
   const validateForm = () => {
     // Clear previous errors
     setError('');
-    
+
     if (!isLogin && !formData.name.trim()) {
       setError('Name is required');
       return false;
@@ -173,25 +185,25 @@ export const LoginSignup = () => {
       setError('Email is required');
       return false;
     }
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address');
       return false;
     }
-    
+
     if (!formData.password.trim()) {
       setError('Password is required');
       return false;
     }
-    
+
     // Password strength validation for signup
     if (!isLogin && formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
       return false;
     }
-    
+
     if (!isLogin && !formData.agreeToTerms) {
       setError('Please agree to the terms and conditions');
       return false;
@@ -222,7 +234,7 @@ export const LoginSignup = () => {
         fieldFocusData: fieldFocusCount // Include focus count data in submit event
       }
     };
-    
+
     // Push the event to both data layers
     pushToDataLayers(eventObject);
 
@@ -231,7 +243,7 @@ export const LoginSignup = () => {
     }
 
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
-    
+
     // Reset form tracking state after successful submission
     resetFormState();
   };
@@ -249,7 +261,7 @@ export const LoginSignup = () => {
   const handleModeSwitch = () => {
     const newIsLogin = !isLogin;
     setIsLogin(newIsLogin);
-    
+
     // Reset all form data and tracking state on mode switch
     setFormData({
       name: '',
