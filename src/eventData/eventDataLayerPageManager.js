@@ -45,101 +45,6 @@ class PageDataLayerManager {
         };
     }
 
-    // Updated method to get Salesforce anonymous ID from the SDK
-    getSalesforceAnonId() {
-        try {
-            // Method 1: Use Salesforce Interactions SDK (preferred)
-            if (typeof SalesforceInteractions !== 'undefined' && 
-                typeof SalesforceInteractions.getAnonymousId === 'function') {
-                const salesforceId = SalesforceInteractions.getAnonymousId();
-                if (salesforceId) {
-                    console.log('Retrieved Salesforce Anonymous ID from SDK:', salesforceId);
-                    return salesforceId;
-                }
-            }
-            
-            // Method 2: Check if it's available on window object
-            if (window.SalesforceInteractions && window.SalesforceInteractions.getAnonymousId) {
-                const salesforceId = window.SalesforceInteractions.getAnonymousId();
-                if (salesforceId) {
-                    console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
-                    return salesforceId;
-                }
-            }
-            
-            // Method 3: Check for Salesforce cookies
-            const sfCookie = this.getSalesforceCookieId();
-            if (sfCookie) {
-                console.log('Retrieved Salesforce ID from cookie:', sfCookie);
-                return sfCookie;
-            }
-            
-            // Method 4: Fallback to localStorage (legacy support)
-            let salesforceId = localStorage.getItem('salesforceAnonId');
-            if (salesforceId) {
-                console.log('Retrieved Salesforce ID from localStorage:', salesforceId);
-                return salesforceId;
-            }
-            
-            // Method 5: Generate new UUID as last resort
-            salesforceId = this.generateUUID();
-            localStorage.setItem('salesforceAnonId', salesforceId);
-            console.log('Generated new Salesforce Anonymous ID:', salesforceId);
-            return salesforceId;
-            
-        } catch (error) {
-            console.error('Error retrieving Salesforce Anonymous ID:', error);
-            // Fallback to generated UUID
-            const fallbackId = this.generateUUID();
-            console.log('Using fallback Salesforce ID:', fallbackId);
-            return fallbackId;
-        }
-    }
-
-    // Helper method to check for Salesforce cookies
-    getSalesforceCookieId() {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            // Common Salesforce cookie patterns
-            if (name.includes('sfdc') || name.includes('salesforce') || 
-                name.includes('interaction') || name.includes('anon')) {
-                return decodeURIComponent(value);
-            }
-        }
-        return null;
-    }
-
-    // Helper method to generate UUID
-    generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // Wait for Salesforce SDK to be available (with timeout)
-    waitForSalesforceSDK(timeout = 5000) {
-        return new Promise((resolve) => {
-            const startTime = Date.now();
-            
-            const checkForSDK = () => {
-                if (typeof SalesforceInteractions !== 'undefined' && 
-                    typeof SalesforceInteractions.getAnonymousId === 'function') {
-                    resolve(true);
-                } else if (Date.now() - startTime < timeout) {
-                    setTimeout(checkForSDK, 100);
-                } else {
-                    console.warn('Salesforce SDK not available after timeout');
-                    resolve(false);
-                }
-            };
-            
-            checkForSDK();
-        });
-    }
-
     // Detect device type
     getDeviceType() {
         const width = window.innerWidth;
@@ -475,20 +380,14 @@ class PageDataLayerManager {
     }
 
     // Main method to populate all page data
-    async populatePageData() {
-        // Ensure eventDataLayer exists
-        if (!window.eventDataLayer) {
-            window.eventDataLayer = { page: {} };
-        }
+    populatePageData() {
+         
         
-        // Wait for Salesforce SDK to be available (optional)
-        await this.waitForSalesforceSDK(2000);
-        
-        const salesforceId = this.getSalesforceAnonId();
+       
+
         const subSections = this.getPageSubSections();
         
         window.eventDataLayer.page = {
-            'salesforceAnonId': salesforceId,
             'deviceType': this.getDeviceType(),
             'domainName': this.getDomainName(),
             'loginStatus': this.getLoginStatus(),
@@ -514,10 +413,6 @@ class PageDataLayerManager {
 
     // Update specific page data (useful for SPA navigation)
     updatePageData(updates) {
-        if (!window.eventDataLayer) {
-            window.eventDataLayer = { page: {} };
-        }
-        
         Object.assign(window.eventDataLayer.page, updates);
         
         // Dispatch update event
@@ -552,44 +447,95 @@ class PageDataLayerManager {
 // Initialize and populate page data
 const pageDataLayer = new PageDataLayerManager();
 
-// Enhanced initialization function
-async function initializeDataLayer() {
-    // Ensure eventDataLayer exists globally
-    if (!window.eventDataLayer) {
-        window.eventDataLayer = { page: {} };
-    }
-    
-    // Wait for DOM to be ready
+// React SPA specific initialization
+function initializeForReactSPA() {
+    // Wait for React to mount and render initial content
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', async () => {
-            setTimeout(async () => await pageDataLayer.populatePageData(), 500);
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => pageDataLayer.populatePageData(), 500);
         });
     } else {
-        // DOM is already loaded, wait a bit for any scripts to load
-        setTimeout(async () => await pageDataLayer.populatePageData(), 500);
+        // DOM is already loaded, wait a bit for React to render
+        setTimeout(() => pageDataLayer.populatePageData(), 500);
     }
 }
 
-// Initialize
-initializeDataLayer();
+// Initialize page data
+initializeForReactSPA();
 
-// Enhanced SPA navigation detection
+// Enhanced SPA navigation detection for React Router
 pageDataLayer.initPageChangeListener();
 
-// Expose utility functions globally
+// Additional React-specific event listeners
+if (typeof window !== 'undefined') {
+    // Listen for React Router navigation events
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function() {
+        originalPushState.apply(history, arguments);
+        setTimeout(() => {
+            pageDataLayer.populatePageData();
+            console.log('React SPA Navigation - Page data updated');
+        }, 300); // Allow time for React to re-render
+    };
+    
+    history.replaceState = function() {
+        originalReplaceState.apply(history, arguments);
+        setTimeout(() => {
+            pageDataLayer.populatePageData();
+            console.log('React SPA Navigation - Page data updated');
+        }, 300);
+    };
+    
+    // Listen for popstate events (back/forward buttons)
+    window.addEventListener('popstate', () => {
+        setTimeout(() => {
+            pageDataLayer.populatePageData();
+            console.log('Browser Navigation - Page data updated');
+        }, 300);
+    });
+    
+    // E-commerce specific events
+    window.addEventListener('cartUpdated', () => {
+        pageDataLayer.updatePageData({
+            'pageCategory': 'cart_interaction'
+        });
+    });
+    
+    window.addEventListener('signupSuccess', () => {
+        pageDataLayer.updatePageData({
+            'loginStatus': 'signed_up'
+        });
+    });
+}
+
+// Expose utility functions globally for manual updates
 window.updatePageDataLayer = (updates) => pageDataLayer.updatePageData(updates);
 window.refreshPageDataLayer = () => pageDataLayer.populatePageData();
 
-// Force refresh of Salesforce ID
-window.refreshSalesforceId = () => {
-    const newId = pageDataLayer.getSalesforceAnonId();
-    pageDataLayer.updatePageData({ salesforceAnonId: newId });
-    console.log('Salesforce ID refreshed:', newId);
+// E-commerce specific helper functions
+window.trackCategoryView = (category) => {
+    const businessUnit = pageDataLayer.config.businessUnits[category.toLowerCase()] || 'general_store';
+    pageDataLayer.updatePageData({
+        'pageCategory': 'category',
+        'siteBusinessUnit': businessUnit,
+        'pageSubSection1': category
+    });
 };
 
-// Debug helper
+window.trackProductView = (productId, category) => {
+    pageDataLayer.updatePageData({
+        'pageCategory': 'product',
+        'pageName': `product_${productId}`,
+        'pageSubSection1': 'product',
+        'pageSubSection2': productId,
+        'siteBusinessUnit': pageDataLayer.config.businessUnits[category] || 'product_detail'
+    });
+};
+
+// Debug helper for development
 window.debugPageDataLayer = () => {
     console.log('Current Page Data Layer:', window.eventDataLayer.page);
-    console.log('Salesforce Anonymous ID:', pageDataLayer.getSalesforceAnonId());
     return window.eventDataLayer.page;
 };
