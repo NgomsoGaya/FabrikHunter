@@ -45,6 +45,16 @@ class PageDataLayerManager {
         };
     }
 
+    getSalesforceVisitorID() {
+            if (window.SalesforceInteractions && window.SalesforceInteractions.getAnonymousId) {
+                const salesforceId = window.SalesforceInteractions.getAnonymousId();
+                if (salesforceId) {
+                    console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
+                    return salesforceId;
+                }
+            }
+    };
+    
     // Detect device type
     getDeviceType() {
         const width = window.innerWidth;
