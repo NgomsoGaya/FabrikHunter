@@ -420,6 +420,7 @@ getSalesforceVisitorID() {
 
         // Optional: Log for debugging
         console.log('Page Data Layer Updated:', window.eventDataLayer.page);
+        console.log(SalesforceId)
         
         // Optional: Dispatch custom event for other scripts to listen to
         window.dispatchEvent(new CustomEvent('pageDataLayerUpdated', {
