@@ -44,6 +44,20 @@ class PageDataLayerManager {
             }
         };
     }
+     // New method to get or create the Salesforce anonymous ID
+    getSalesforceAnonId() {
+        let salesforceId = localStorage.getItem('salesforceAnonId');
+        if (!salesforceId) {
+            // Generate a UUID (Universally Unique Identifier)
+            salesforceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            localStorage.setItem('salesforceAnonId', salesforceId);
+        }
+        return salesforceId;
+    }
+
 
     // Detect device type
     getDeviceType() {
@@ -382,12 +396,12 @@ class PageDataLayerManager {
     // Main method to populate all page data
     populatePageData() {
          
-        
-        window.eventDataLayer = [];
-
+        const salesforceId = this.getSalesforceAnonId();
+       
         const subSections = this.getPageSubSections();
         
         window.eventDataLayer.page = {
+            'salesforceAnonId': salesforceId,
             'deviceType': this.getDeviceType(),
             'domainName': this.getDomainName(),
             'loginStatus': this.getLoginStatus(),
@@ -413,6 +427,8 @@ class PageDataLayerManager {
 
     // Update specific page data (useful for SPA navigation)
     updatePageData(updates) {
+        const salesforceId = this.getSalesforceAnonId();
+
         Object.assign(window.eventDataLayer.page, updates);
         
         // Dispatch update event
