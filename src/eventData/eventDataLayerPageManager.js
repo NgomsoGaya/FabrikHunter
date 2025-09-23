@@ -378,16 +378,22 @@ class PageDataLayerManager {
     getWebsiteNameCode() {
         return 'fabrikhunter_store';
     }
-
-    getSalesforceVisitorID() {
-            if (window.SalesforceInteractions.getAnonymousId) {
-                const salesforceId = window.SalesforceInteractions.getAnonymousId();
-                if (salesforceId) {
-                    console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
-                    return salesforceId;
-                }
+getSalesforceVisitorID() {
+    try {
+        if (window.SalesforceInteractions && window.SalesforceInteractions.getAnonymousId) {
+            const salesforceId = window.SalesforceInteractions.getAnonymousId();
+            if (salesforceId) {
+                console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
+                return salesforceId;
             }
-    };
+        }
+    } catch (error) {
+        console.warn('Error retrieving Salesforce ID:', error);
+    }
+    
+    console.log('Salesforce Anonymous ID not available');
+    return null; // Explicitly return null when ID is not available
+}
 
     // Main method to populate all page data
     populatePageData() {
