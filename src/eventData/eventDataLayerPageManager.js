@@ -45,16 +45,6 @@ class PageDataLayerManager {
         };
     }
 
-    getSalesforceVisitorID() {
-            if (window.SalesforceInteractions && window.SalesforceInteractions.getAnonymousId) {
-                const salesforceId = window.SalesforceInteractions.getAnonymousId();
-                if (salesforceId) {
-                    console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
-                    return salesforceId;
-                }
-            }
-    };
-    
     // Detect device type
     getDeviceType() {
         const width = window.innerWidth;
@@ -389,11 +379,20 @@ class PageDataLayerManager {
         return 'fabrikhunter_store';
     }
 
+    getSalesforceVisitorID() {
+            if (window.SalesforceInteractions.getAnonymousId) {
+                const salesforceId = window.SalesforceInteractions.getAnonymousId();
+                if (salesforceId) {
+                    console.log('Retrieved Salesforce Anonymous ID from window object:', salesforceId);
+                    return salesforceId;
+                }
+            }
+    };
+
     // Main method to populate all page data
     populatePageData() {
-         
-        
-       
+
+    const SalesforceId = this.getSalesforceVisitorID();
 
         const subSections = this.getPageSubSections();
         
@@ -411,6 +410,7 @@ class PageDataLayerManager {
             'websiteName': this.getWebsiteName(),
             'websiteNameCode': this.getWebsiteNameCode()
         };
+        window.eventDataLayer.push(SalesforceId)
 
         // Optional: Log for debugging
         console.log('Page Data Layer Updated:', window.eventDataLayer.page);
