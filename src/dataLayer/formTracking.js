@@ -7,7 +7,7 @@ window.eventDataLayer = window.eventDataLayer || {};
 window.eventDataLayer.form = {
     'formName': '',
     'fieldName': '',
-    'formStatus': '',
+    'formStatus': 'Loaded',
     'formIsSubmitted': false
 };
 
@@ -38,15 +38,17 @@ class FormDataLayerManager {
         
         // Update the eventDataLayer
         Object.assign(window.eventDataLayer.form, data);
-        
+    
         // Also update digitalData for consistency with existing implementation
         if (window.digitalData && window.digitalData.form) {
             window.digitalData.form.formId = data.formName + 'Form';
             window.digitalData.form.formName = this.getFormDisplayName(data.formName);
+
             
             // Update form status flags
             if (data.formStatus === 'form_started' || data.formStatus === 'field_focused') {
                 window.digitalData.form.formStart = true;
+
             }
             if (data.formIsSubmitted) {
                 window.digitalData.form.formSubmit = true;

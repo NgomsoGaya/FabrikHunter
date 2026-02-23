@@ -9,66 +9,72 @@ const pushToDataLayers = (eventObject) => {
   }
   if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
     window.eventDataLayer.push(eventObject);
+    
   }
-
 };
 
-   // Function to clear only form-related events from the data layer
-    const clearFormEvents = () => {
-      if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
-        // Filter out all events that have a form-related event value
-        window.eventDataLayer = window.eventDataLayer.filter(eventObject =>
-          eventObject.event !== 'formStart' &&
-          eventObject.event !== 'formFieldInteraction' &&
-          eventObject.event !== 'formSubmit' &&
-          eventObject.event !== 'formModeSwitch'
-        );
-        console.log("Form interaction events cleared from eventDataLayer.");
-      }
-    };
+// Function to clear only form-related events from the data layer
+const clearFormEvents = () => {
+  if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
+    // Remove only events that belong to this specific form instance
+    window.eventDataLayer = window.eventDataLayer.filter(eventObject => {
+      const formId = eventObject && eventObject.form && eventObject.form.formId;
+      return formId !== 'loginSignupForm';
+    });
+    console.log("Cleared events for loginSignupForm from eventDataLayer.");
+  }
+};
 
 export const LoginSignup = () => {
-  // isLogin determines whether the form is for login or sign up
+
+  
   const [isLogin, setIsLogin] = useState(false);
-  // formData stores the values of the form inputs
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     agreeToTerms: false
   });
-  // error and success messages for user feedback
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // This tracks the order of unique fields a user interacts with.
+  
+  // Tracks the order of unique fields a user interacts with for the summary
   const [interactionFields, setInteractionFields] = useState([]);
-  // Track if form has been started to prevent duplicate formStart events
+  
+  // NEW: Tracks which fields have already triggered an event to prevent keystroke spam
+  const [touchedFields, setTouchedFields] = useState([]);
+  
   const [formStarted, setFormStarted] = useState(false);
-  // Track focus count per field for perFormField events
-  const [fieldFocusCount, setFieldFocusCount] = useState({});
 
-  // Initialize digitalData and eventDataLayer on component mount.
-  // This ensures the data layers are ready to accept events.
   useEffect(() => {
-    if (!window.digitalData) {
-      window.digitalData = [];
-    }
-    if (!window.eventDataLayer) {
-      window.eventDataLayer = [];
-    }
+    if (!window.digitalData) window.digitalData = [];
+    if (!window.eventDataLayer) window.eventDataLayer = [];
 
-    //cleanup
-    return () => {
-
-      clearFormEvents(); // This only clears form-related events
-
+    // Push a single "formLoaded" event for this Login/Signup instance.
+    const loadedEvent = {
+      event: 'formLoaded',
+      form: {
+        formId: 'loginSignupForm',
+        formName: 'Login/Signup Form',
+        formStatus: 'Loaded',
+        formIsSubmitted: false,
+        formMode: isLogin ? 'login' : 'signup',
+        timestamp: new Date().toISOString()
+      }
     };
-  }, [])
+    pushToDataLayers(loadedEvent);
 
-  // Handles the perFormField focus event - fires every time a field is focused
-  const handleFieldFocus = (fieldName) => {
+    return () => {
+      clearFormEvents();
+    };
+  }, []);
 
-    // Create the perFormField event object
+  // --- EVENT HANDLERS ---
+
+  // 1. Send the actual event logic
+  const sendFieldInteractionEvent = (fieldName) => {
     const eventObject = {
       event: "formFieldInteraction",
       form: {
@@ -76,22 +82,15 @@ export const LoginSignup = () => {
         formName: "Login/Signup Form",
         fieldName: fieldName,
         fieldType: getFieldType(fieldName),
-        // focusCount: newCount,
-        // isFirstFocus: newCount === 1,
         formMode: isLogin ? 'login' : 'signup',
-        // totalInteractionFields: interactionFields.length,
-        // fieldPosition: getFieldPosition(fieldName)
         formIsSubmitted: false,
-        interactionFields: [fieldName],
-        formMode: isLogin ? 'login' : 'signup'
+        interactionFields: [fieldName], 
       }
     };
-
-    // Push the event to both data layers
     pushToDataLayers(eventObject);
   };
 
-  // Helper function to determine field type
+  // 2. Helper to determine field type
   const getFieldType = (fieldName) => {
     switch (fieldName) {
       case 'name': return 'text';
@@ -102,81 +101,69 @@ export const LoginSignup = () => {
     }
   };
 
-  // Helper function to get field position in the form
-  const getFieldPosition = (fieldName) => {
-    const fieldOrder = isLogin
-      ? ['email', 'password']
-      : ['name', 'email', 'password', 'agreeToTerms'];
+  // 3. Handle Form Start Logic
+  // const handleFormStart = (fieldName) => {
+  //   if (!formStarted) {
+  //     setFormStarted(true);
+  //     const eventObject = {
+  //       event: "formStart",
+  //       form: {
+  //         formId: "loginSignupForm",
+  //         formName: "Login/Signup Form",
+  //         formStatus: 'started',
+  //         formIsSubmitted: false,
+  //         firstInteractionField: fieldName,
+  //         interactionFields: [fieldName],
+  //         formMode: isLogin ? 'login' : 'signup'
+  //       }
+  //     };
+  //     pushToDataLayers(eventObject);
+  //   }
+  // };
 
-    return fieldOrder.indexOf(fieldName) + 1;
-  };
+  // 4. NEW: Centralized Tracking Logic (Called on Input Change)
+  const trackInputInteraction = (fieldName) => {
+    // Only proceed if we haven't tracked this field yet
+    if (!touchedFields.includes(fieldName)) {
+      
+      // 1. Trigger Start if this is the very first action
+     // handleFormStart(fieldName);
 
-  // Tracks the start of the form. This event fires only once per form session.
-  const handleFormStart = (fieldName) => {
-    // Use component state to prevent multiple formStart events
-    if (!formStarted) {
-      setFormStarted(true);
+      // 2. Trigger the Field Interaction Event
+      sendFieldInteractionEvent(fieldName);
 
-      // Initialize the interactionFields array with the first field name
-      setInteractionFields([fieldName]);
+      // 3. Mark this field as "touched" so subsequent keystrokes don't fire events
+      setTouchedFields(prev => [...prev, fieldName]);
 
-      // Create the consistent formStart event object
-      const eventObject = {
-        event: "formStart",
-        form: {
-          formId: "loginSignupForm",
-          formName: "Login/Signup Form",
-          formStatus: 'started',
-          formIsSubmitted: false,
-          firstInteractionField: fieldName,
-          interactionFields: [fieldName],
-          formMode: isLogin ? 'login' : 'signup' // Added form mode tracking
-        }
-      };
-
-      // Push the event to both data layers
-      pushToDataLayers(eventObject);
-    } else {
-      // If form already started, just track field interaction
+      // 4. Add to summary interaction list if unique
       if (!interactionFields.includes(fieldName)) {
         setInteractionFields(prev => [...prev, fieldName]);
       }
     }
   };
 
-  // Combined focus handler that triggers both formStart and perFormField events
-  const handleFocus = (fieldName) => {
-    handleFormStart(fieldName);
-    handleFieldFocus(fieldName);
-  };
+  // --- FORM HANDLERS ---
 
-  // Handles changes to form inputs. It also tracks the order of field interactions.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Clear any existing errors when user starts typing
-    if (error) {
-      setError('');
-    }
+    // 1. Clear UI Errors
+    if (error) setError('');
 
-    // Update the form data state
+    // 2. Update React State (Standard behavior)
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
 
-    // If the field name is not already in our interactionFields array, add it.
-    // This ensures we only store the order of unique interactions.
-    if (!interactionFields.includes(name)) {
-      setInteractionFields(prev => [...prev, name]);
-    }
+    // 3. TRIGGER TRACKING:
+    // We pass the name to our new tracker. 
+    // It internally checks if it should fire an event.
+    trackInputInteraction(name);
   };
 
-  // Validates the form data before submission
   const validateForm = () => {
-    // Clear previous errors
     setError('');
-
     if (!isLogin && !formData.name.trim()) {
       setError('Name is required');
       return false;
@@ -185,25 +172,19 @@ export const LoginSignup = () => {
       setError('Email is required');
       return false;
     }
-
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address');
       return false;
     }
-
     if (!formData.password.trim()) {
       setError('Password is required');
       return false;
     }
-
-    // Password strength validation for signup
     if (!isLogin && formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
       return false;
     }
-
     if (!isLogin && !formData.agreeToTerms) {
       setError('Please agree to the terms and conditions');
       return false;
@@ -211,15 +192,13 @@ export const LoginSignup = () => {
     return true;
   };
 
-  // Handles form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSuccess(''); // Clear previous success messages
+    setSuccess(''); 
 
     const isFormValid = validateForm();
     const formStatus = isFormValid ? 'success' : 'failure';
 
-    // Create the consistent formSubmit event object
     const eventObject = {
       event: "formSubmit",
       form: {
@@ -231,38 +210,29 @@ export const LoginSignup = () => {
         firstInteractionField: interactionFields[0] || null,
         formMode: isLogin ? 'login' : 'signup',
         validationErrors: !isFormValid ? [error] : [],
-        fieldFocusData: fieldFocusCount // Include focus count data in submit event
       }
     };
 
-    // Push the event to both data layers
     pushToDataLayers(eventObject);
 
-    if (!isFormValid) {
-      return; // Error message already set in validateForm
-    }
+    if (!isFormValid) return;
 
     setSuccess(isLogin ? 'Login successful!' : 'Sign up successful!');
-
-    // Reset form tracking state after successful submission
     resetFormState();
   };
 
-  // Helper function to reset form state
   const resetFormState = () => {
-    setFormStarted(false);
+    //setFormStarted(false);
     setInteractionFields([]);
-    setFieldFocusCount({});
+    setTouchedFields([]); // Reset tracked inputs so they can be tracked again next time
     setError('');
     setSuccess('');
   };
 
-  // Handles the switch between login and signup modes
   const handleModeSwitch = () => {
     const newIsLogin = !isLogin;
     setIsLogin(newIsLogin);
 
-    // Reset all form data and tracking state on mode switch
     setFormData({
       name: '',
       email: '',
@@ -272,7 +242,6 @@ export const LoginSignup = () => {
     resetFormState();
 
     const newMode = newIsLogin ? "login" : "signup";
-
     const eventObject = {
       event: "formModeSwitch",
       form: {
@@ -299,7 +268,7 @@ export const LoginSignup = () => {
                 placeholder='Your Name'
                 value={formData.name}
                 onChange={handleChange}
-                onFocus={() => handleFocus('name')}
+                // onFocus Removed
                 required={!isLogin}
               />
             )}
@@ -309,7 +278,7 @@ export const LoginSignup = () => {
               placeholder='Email Address'
               value={formData.email}
               onChange={handleChange}
-              onFocus={() => handleFocus('email')}
+              // onFocus Removed
               required
             />
             <input
@@ -318,7 +287,7 @@ export const LoginSignup = () => {
               placeholder='Password'
               value={formData.password}
               onChange={handleChange}
-              onFocus={() => handleFocus('password')}
+              // onFocus Removed
               required
             />
           </div>
@@ -330,7 +299,7 @@ export const LoginSignup = () => {
                 name="agreeToTerms"
                 checked={formData.agreeToTerms}
                 onChange={handleChange}
-                onFocus={() => handleFocus('agreeToTerms')}
+                // onFocus Removed
                 required={!isLogin}
               />
               <p>By continuing, I agree to the terms of use & privacy policy</p>
