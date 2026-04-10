@@ -16,12 +16,12 @@ const pushToDataLayers = (eventObject) => {
 // Function to clear only form-related events from the data layer
 const clearFormEvents = () => {
   if (window.eventDataLayer && Array.isArray(window.eventDataLayer)) {
-    // Remove only events that belong to this specific form instance
+    // Remove only events that belong to this specific form instances
     window.eventDataLayer = window.eventDataLayer.filter(eventObject => {
       const formId = eventObject && eventObject.form && eventObject.form.formId;
-      return formId !== 'loginSignupForm';
+      return formId !== 'loginSignupForm' && formId !== 'forgotPasswordForm';
     });
-    console.log("Cleared events for loginSignupForm from eventDataLayer.");
+    console.log("Cleared events for loginSignupForm and forgotPasswordForm from eventDataLayer.");
   }
 };
 
@@ -47,6 +47,12 @@ export const LoginSignup = () => {
   const [touchedFields, setTouchedFields] = useState([]);
   
   const [formStarted, setFormStarted] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordData, setForgotPasswordData] = useState({ email: '' });
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotTouchedFields, setForgotTouchedFields] = useState([]);
+  const [forgotInteractionFields, setForgotInteractionFields] = useState([]);
 
   useEffect(() => {
     if (!window.digitalData) window.digitalData = [];
@@ -88,6 +94,32 @@ export const LoginSignup = () => {
       }
     };
     pushToDataLayers(eventObject);
+  };
+
+  const sendForgotPasswordFieldInteractionEvent = (fieldName) => {
+    const eventObject = {
+      event: "formFieldInteraction",
+      form: {
+        formId: "forgotPasswordForm",
+        formName: "Forgot Password Form",
+        fieldName: fieldName,
+        fieldType: getFieldType(fieldName),
+        formMode: 'signup',
+        formIsSubmitted: false,
+        interactionFields: [fieldName],
+      }
+    };
+    pushToDataLayers(eventObject);
+  };
+
+  const trackForgotPasswordInteraction = (fieldName) => {
+    if (!forgotTouchedFields.includes(fieldName)) {
+      sendForgotPasswordFieldInteractionEvent(fieldName);
+      setForgotTouchedFields(prev => [...prev, fieldName]);
+      if (!forgotInteractionFields.includes(fieldName)) {
+        setForgotInteractionFields(prev => [...prev, fieldName]);
+      }
+    }
   };
 
   // 2. Helper to determine field type
@@ -140,6 +172,69 @@ export const LoginSignup = () => {
         setInteractionFields(prev => [...prev, fieldName]);
       }
     }
+  };
+
+  const handleForgotPasswordChange = (e) => {
+    const { name, value } = e.target;
+    if (forgotError) setForgotError('');
+    setForgotPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    trackForgotPasswordInteraction(name);
+  };
+
+  const validateForgotPasswordForm = () => {
+    setForgotError('');
+    if (!forgotPasswordData.email.trim()) {
+      setForgotError('Email is required');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(forgotPasswordData.email)) {
+      setForgotError('Please enter a valid email address');
+      return false;
+    }
+    return true;
+  };
+
+  const handleForgotPasswordSubmit = (e) => {
+    e.preventDefault();
+    setForgotSuccess('');
+
+    const isFormValid = validateForgotPasswordForm();
+    const formStatus = isFormValid ? 'success' : 'failure';
+
+    const eventObject = {
+      event: "formSubmit",
+      form: {
+        formId: "forgotPasswordForm",
+        formName: "Forgot Password Form",
+        formStatus: formStatus,
+        formIsSubmitted: true,
+        interactionFields: forgotInteractionFields,
+        firstInteractionField: forgotInteractionFields[0] || null,
+        formMode: 'signup',
+        validationErrors: !isFormValid ? [forgotError] : [],
+      }
+    };
+
+    pushToDataLayers(eventObject);
+
+    if (!isFormValid) return;
+
+    setForgotSuccess('Password reset instructions have been sent to your email.');
+    setForgotPasswordData({ email: '' });
+    setForgotTouchedFields([]);
+    setForgotInteractionFields([]);
+  };
+
+  const resetForgotPasswordState = () => {
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotPasswordData({ email: '' });
+    setForgotTouchedFields([]);
+    setForgotInteractionFields([]);
   };
 
   // --- FORM HANDLERS ---
@@ -240,6 +335,8 @@ export const LoginSignup = () => {
       agreeToTerms: false
     });
     resetFormState();
+    resetForgotPasswordState();
+    setShowForgotPassword(false);
 
     const newMode = newIsLogin ? "login" : "signup";
     const eventObject = {
@@ -253,6 +350,27 @@ export const LoginSignup = () => {
       }
     };
     pushToDataLayers(eventObject);
+  };
+
+  const handleForgotPasswordToggle = () => {
+    const nextVisible = !showForgotPassword;
+    setShowForgotPassword(nextVisible);
+    resetForgotPasswordState();
+
+    if (nextVisible) {
+      const loadedEvent = {
+        event: 'formLoaded',
+        form: {
+          formId: 'forgotPasswordForm',
+          formName: 'Forgot Password Form',
+          formStatus: 'Loaded',
+          formIsSubmitted: false,
+          formMode: 'signup',
+          timestamp: new Date().toISOString()
+        }
+      };
+      pushToDataLayers(loadedEvent);
+    }
   };
 
   return (
@@ -303,6 +421,33 @@ export const LoginSignup = () => {
                 required={!isLogin}
               />
               <p>By continuing, I agree to the terms of use & privacy policy</p>
+            </div>
+          )}
+
+          {!isLogin && (
+            <div className="forgot-password-toggle">
+              <span onClick={handleForgotPasswordToggle}>
+                {showForgotPassword ? 'Hide forgot password form' : 'Forgot password?'}
+              </span>
+            </div>
+          )}
+
+          {showForgotPassword && !isLogin && (
+            <div className="forgot-password-inline">
+              <h2>Forgot Password</h2>
+              <input
+                type="email"
+                name="email"
+                placeholder='Enter your email for password reset'
+                value={forgotPasswordData.email}
+                onChange={handleForgotPasswordChange}
+                required
+              />
+              {forgotError && <p className="error-message">{forgotError}</p>}
+              {forgotSuccess && <p className="success-message">{forgotSuccess}</p>}
+              <button type="button" className='submit' onClick={handleForgotPasswordSubmit}>
+                Send reset email
+              </button>
             </div>
           )}
 

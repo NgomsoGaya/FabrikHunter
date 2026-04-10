@@ -60,7 +60,7 @@ class FormDataLayerManager {
             }
             
             // Push relevant events
-            if (data.formStatus === 'field_focused' && !this.hasTrackedFormStart) {
+            if (data.formStatus === 'field_focused' ) {
                 window.digitalData.event.push({
                     event: "formStart",
                     form: {
